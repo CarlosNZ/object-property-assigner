@@ -184,6 +184,7 @@ test('Create new property with missing final property', () => {
   )
 })
 
+// Create or replace properties
 test('Create new property with missing early property', () => {
   expect(assign(cloneDeep(testObj1), 'x', 'More XXX', { createNew: true })).toStrictEqual({
     ...testObj1,
@@ -193,7 +194,7 @@ test('Create new property with missing early property', () => {
 
 test('Create new property with missing early property with additional path parts', () => {
   expect(
-    assign(cloneDeep(testObj1), 'x.one.two', 'This is deep', { createNew: true, noError: true })
+    assign(cloneDeep(testObj1), 'x.one.two', 'This is deep', { createNew: true })
   ).toStrictEqual({
     ...testObj1,
     x: { one: { two: 'This is deep' } },
@@ -201,12 +202,29 @@ test('Create new property with missing early property with additional path parts
 })
 
 test('Replace simple property with a deeper object', () => {
-  expect(
-    assign(cloneDeep(testObj1), 'a.one.two', 'This is deep', { createNew: true, noError: true })
-  ).toStrictEqual({
+  expect(assign(cloneDeep(testObj1), 'a.one.two', 'This is deep')).toStrictEqual({
     ...testObj1,
     a: { one: { two: 'This is deep' } },
   })
+})
+
+// DON'T create new properties (but don't throw error)
+test("Don't create new early property", () => {
+  expect(
+    assign(cloneDeep(testObj1), 'x', 'More XXX', { createNew: false, noError: true })
+  ).toStrictEqual(testObj1)
+})
+
+test("Don't create new missing early property with additional path parts", () => {
+  expect(
+    assign(cloneDeep(testObj1), 'x.one.two', 'This is deep', { createNew: false, noError: true })
+  ).toStrictEqual(testObj1)
+})
+
+test("Don't replace simple property with a deeper object", () => {
+  expect(
+    assign(cloneDeep(testObj1), 'a.one.two', 'This is deep', { createNew: false, noError: true })
+  ).toStrictEqual(testObj1)
 })
 
 // // Empty property strings

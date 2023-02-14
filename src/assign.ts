@@ -16,12 +16,18 @@ const assignProperty = (
         acc.forEach((e) => {
           e[part] = newValue
         })
-      } else acc[part] = newValue
+      } else {
+        if (createNew) acc[part] = newValue
+        else return acc
+      }
 
       return
     }
 
-    if (!(part in acc) || !isObject(acc[part])) acc[part] = {}
+    if (!(part in acc) || !isObject(acc[part])) {
+      if (createNew) acc[part] = {}
+      else return acc
+    }
 
     return acc[part]
   }, inputObj)
