@@ -1,4 +1,3 @@
-import { isObject } from 'lodash'
 import { InputObject, Options } from './types'
 
 // Assigns a specific property or index (e.g. application.name) inside a nested
@@ -17,9 +16,9 @@ const assignProperty = (
         acc.forEach((e) => {
           e[part] = newValue
         })
-      }
-      acc[part] = newValue
-      // return acc[part]
+      } else acc[part] = newValue
+
+      return
     }
 
     if (!(part in acc) || !isObject(acc[part])) acc[part] = {}
@@ -71,14 +70,16 @@ const throwError = (obj: any, fullPath: string, part: string | number): void => 
   )
 }
 
-const createNewProperty = (obj: InputObject, pathArray: (string | number)[], newValue: any) => {
-  let current = obj
-  pathArray.forEach((part, index) => {
-    if (!isObject(current)) return
-    if (!(part in current)) (current as any)[part] = index === pathArray.length - 1 ? newValue : {}
+const isObject = (obj: unknown) => obj instanceof Object && obj !== null
 
-    current = (current as any)[part]
-  })
-}
+// const createNewProperty = (obj: InputObject, pathArray: (string | number)[], newValue: any) => {
+//   let current = obj
+//   pathArray.forEach((part, index) => {
+//     if (!isObject(current)) return
+//     if (!(part in current)) (current as any)[part] = index === pathArray.length - 1 ? newValue : {}
+
+//     current = (current as any)[part]
+//   })
+// }
 
 export default assignProperty

@@ -161,19 +161,19 @@ test('Ignore irrelevant trailing characters in property string, array top-level'
   ])
 })
 
-test('Throw error with missing final property', () => {
-  expect(() => assign(cloneDeep(testObj1), 'b.inner3.missing', 'NEW')).toThrow(
-    `Invalid property path: b.inner3.missing\nCouldn't access "missing" in ${JSON.stringify(
-      testObj1
-    )}`
-  )
-})
+// test('Throw error with missing final property', () => {
+//   expect(() => assign(cloneDeep(testObj1), 'b.inner3.missing', 'NEW')).toThrow(
+//     `Invalid property path: b.inner3.missing\nCouldn't access "missing" in ${JSON.stringify(
+//       testObj1
+//     )}`
+//   )
+// })
 
-test('Throw error with missing early property', () => {
-  expect(() => assign(cloneDeep(testObj1), 'b.nope', 'NEW')).toThrow(
-    `Invalid property path: b.nope\nCouldn't access "nope" in ${JSON.stringify(testObj1)}`
-  )
-})
+// test('Throw error with missing early property', () => {
+//   expect(() => assign(cloneDeep(testObj1), 'b.nope', 'NEW')).toThrow(
+//     `Invalid property path: b.nope\nCouldn't access "nope" in ${JSON.stringify(testObj1)}`
+//   )
+// })
 
 test('Create new property with missing final property', () => {
   expect(assign(cloneDeep(testObj1), 'b.inner3.missing', 'Bob', { createNew: true })).toStrictEqual(

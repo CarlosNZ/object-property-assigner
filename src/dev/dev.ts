@@ -55,7 +55,9 @@ const arrData = [
   },
 ]
 
-const smallerObj = { one: 1, two: { three: 3 } }
+const smallerObj = { a: 1, two: { three: 3 } }
 
-assign(smallerObj, 'one.four.two', 'This is deep', { createNew: true, noError: true })
-console.log(JSON.stringify(smallerObj, null, 2))
+const x = assign(arrData, '[2].one.y', { more: 'yes' })
+// console.log(JSON.stringify(arrData, null, 2))
+console.log(x[2])
+// console.log(arrData[2])
