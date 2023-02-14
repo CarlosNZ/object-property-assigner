@@ -11,6 +11,10 @@ const assignProperty = (
   const propertyPathArray = splitPropertyString(propertyPath as string).filter((e) => e !== '')
 
   propertyPathArray.reduce((acc: any, part, index) => {
+    if (isObject(acc) && !Array.isArray(acc) && !(part in acc)) {
+      if (!noError && !createNew) throwError(inputObj, propertyPath, part)
+    }
+
     if (index === propertyPathArray.length - 1) {
       if (Array.isArray(acc) && typeof part !== 'number') {
         acc.forEach((e) => {
