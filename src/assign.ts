@@ -1,32 +1,27 @@
-import { BasicObject, InputObject } from './types'
+import { InputObject, Options } from './types'
 
 // Returns a specific property or index (e.g. application.name) from a nested Object
 const assignProperty = (
   inputObj: InputObject,
-  properties: string | number | (string | number)[],
-  fallback?: any
+  properties: string,
+  newValue: any,
+  { remove = false, createNew = false, noError = false }: Options = {}
 ): any => {
-  const propertyPathArray = Array.isArray(properties)
-    ? properties
-    : splitPropertyString(properties as string)
+  const propertyPathArray = splitPropertyString(properties as string).filter((e) => e !== '')
 
-  const currentProperty = propertyPathArray[0]
+  // console.log(propertyPathArray)
 
-  if (currentProperty === '') return inputObj
+  propertyPathArray.reduce((acc: any, part, index) => {
+    if (index === propertyPathArray.length - 1) {
+      if (Array.isArray(acc) && typeof part !== 'number') {
+        acc.forEach((e) => setValueOrError(e, part, newValue, remove, createNew, !noError))
+      } else setValueOrError(acc, part, newValue, remove, createNew, !noError)
+    } else {
+      return acc[part]
+    }
+  }, inputObj)
 
-  if (Array.isArray(inputObj) && typeof currentProperty !== 'number')
-    return inputObj.map((item) => assignProperty(item, propertyPathArray, fallback))
-
-  if (typeof inputObj !== 'object' || inputObj === null || !(currentProperty in inputObj))
-    return fallbackOrError(inputObj, currentProperty, fallback)
-
-  //  @ts-ignore -- we've already checked for values that could cause problems
-  const newObj = inputObj[currentProperty]
-  if (propertyPathArray.length === 1) {
-    return newObj
-  } else {
-    return assignProperty(newObj, propertyPathArray.slice(1), fallback)
-  }
+  return inputObj
 }
 
 // Splits a string representing a (nested) property/index on an Object or Array
@@ -40,12 +35,25 @@ const splitPropertyString = (propertyPath: string) => {
   return arr.flat()
 }
 
-const fallbackOrError = (obj: InputObject, property: string | number, fallback: any) => {
-  if (fallback === undefined)
-    throw new Error(`Unable to extract object property
-Looking for property: ${property}
-In object: ${JSON.stringify(obj)}`)
-  else return fallback
+const setValueOrError = (
+  obj: Record<string, any>,
+  part: string | number,
+  newValue: any,
+  remove: boolean,
+  createNew: boolean,
+  throwError: boolean
+) => {
+  if (part in obj) {
+    if (remove) delete obj[part]
+    else obj[part] = newValue
+    return
+  }
+
+  if (throwError) throw new Error(`Invalid property path: ${part}`)
+
+  if (createNew) obj[part] = newValue
 }
 
 export default assignProperty
+
+export const deepCopy = (value: any) => JSON.parse(JSON.stringify(value))

@@ -1,4 +1,4 @@
-import extract from '../extract'
+import assign from '../assign'
 
 const testObj1 = {
   a: 1,
@@ -44,5 +44,15 @@ const data = {
 }
 
 // console.log(extract(data, 'user.children[0].'))
-console.log(extract(data, 'user.weapons.name'))
-console.log((extract(data, 'user.weapons') as any[]).map((weapon) => weapon.name))
+const arrData = [
+  1,
+  2,
+  {
+    one: [
+      { x: 'Ex', y: 'Why' },
+      { x: 'XXX', y: 'YYY' },
+    ],
+  },
+]
+assign(testObj1, 'b.xxx.missing', 'NEW', { noError: true })
+console.log(JSON.stringify(testObj1, null, 2))
