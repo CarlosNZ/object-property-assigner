@@ -1,24 +1,30 @@
+import { isObject } from 'lodash'
 import { InputObject, Options } from './types'
 
-// Returns a specific property or index (e.g. application.name) from a nested Object
+// Assigns a specific property or index (e.g. application.name) inside a nested
+// Object
 const assignProperty = (
   inputObj: InputObject,
-  properties: string,
+  propertyPath: string,
   newValue: any,
-  { remove = false, createNew = false, noError = false }: Options = {}
+  { remove = false, createNew = true, noError = false }: Options = {}
 ): any => {
-  const propertyPathArray = splitPropertyString(properties as string).filter((e) => e !== '')
-
-  // console.log(propertyPathArray)
+  const propertyPathArray = splitPropertyString(propertyPath as string).filter((e) => e !== '')
 
   propertyPathArray.reduce((acc: any, part, index) => {
     if (index === propertyPathArray.length - 1) {
       if (Array.isArray(acc) && typeof part !== 'number') {
-        acc.forEach((e) => setValueOrError(e, part, newValue, remove, createNew, !noError))
-      } else setValueOrError(acc, part, newValue, remove, createNew, !noError)
-    } else {
-      return acc[part]
+        acc.forEach((e) => {
+          e[part] = newValue
+        })
+      }
+      acc[part] = newValue
+      // return acc[part]
     }
+
+    if (!(part in acc) || !isObject(acc[part])) acc[part] = {}
+
+    return acc[part]
   }, inputObj)
 
   return inputObj
@@ -37,11 +43,13 @@ const splitPropertyString = (propertyPath: string) => {
 
 const setValueOrError = (
   obj: Record<string, any>,
+  inputObj: InputObject,
   part: string | number,
   newValue: any,
+  fullPath: string,
   remove: boolean,
   createNew: boolean,
-  throwError: boolean
+  shouldThrow: boolean
 ) => {
   if (part in obj) {
     if (remove) delete obj[part]
@@ -49,11 +57,28 @@ const setValueOrError = (
     return
   }
 
-  if (throwError) throw new Error(`Invalid property path: ${part}`)
+  if (createNew) {
+    obj[part] = newValue
+    return
+  }
 
-  if (createNew) obj[part] = newValue
+  if (shouldThrow) throwError(inputObj, fullPath, part)
+}
+
+const throwError = (obj: any, fullPath: string, part: string | number): void => {
+  throw new Error(
+    `Invalid property path: ${fullPath}\nCouldn't access "${part}" in ${JSON.stringify(obj)}`
+  )
+}
+
+const createNewProperty = (obj: InputObject, pathArray: (string | number)[], newValue: any) => {
+  let current = obj
+  pathArray.forEach((part, index) => {
+    if (!isObject(current)) return
+    if (!(part in current)) (current as any)[part] = index === pathArray.length - 1 ? newValue : {}
+
+    current = (current as any)[part]
+  })
 }
 
 export default assignProperty
-
-export const deepCopy = (value: any) => JSON.parse(JSON.stringify(value))

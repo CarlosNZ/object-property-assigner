@@ -54,5 +54,8 @@ const arrData = [
     ],
   },
 ]
-assign(testObj1, 'b.xxx.missing', 'NEW', { noError: true })
-console.log(JSON.stringify(testObj1, null, 2))
+
+const smallerObj = { one: 1, two: { three: 3 } }
+
+assign(smallerObj, 'one.four.two', 'This is deep', { createNew: true, noError: true })
+console.log(JSON.stringify(smallerObj, null, 2))
