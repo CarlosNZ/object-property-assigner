@@ -1,6 +1,6 @@
 {
   "name": "object-property-assigner",
-  "version": "1.0.0",
+  "version": "0.9.0",
   "description": "A lightweight (no dependencies) tool to assign deeply nested properties in JS Objects (incl. Arrays)",
   "main": "build/assign.js",
   "types": "build/assign.d.js",
