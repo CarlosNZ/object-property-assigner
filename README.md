@@ -1,10 +1,8 @@
-# Object Property Extractor
+# Object Property Assigner
 
-Access deep object properties using a string (e.g. "user.country.name")
+*Companion package to [object-property-extractor](https://www.npmjs.com/package/object-property-extractor)*
 
-A lightweight (no dependencies) tool to extract deeply nested values from JS Objects (or Arrays), with optional Fallback.
-
-Similar to [Lodash' `get`](https://lodash.com/docs/4.17.15#get) function, but with some additional functionality.
+A lightweight (no dependencies) tool to assign deeply nested values in JS Objects (or Arrays).
 
 ## Why?
 
@@ -23,66 +21,70 @@ const data = {
 }
 ```
 
-In Javascript, you call inner object properties via dot notation:
+In Javascript, you assign inner object properties via dot notation:
 ```js
-data.user.name.last // Fett
+data.user.name.last = "Hutt" 
 ```
 
-If you want to access a property dynamically, you can do this:
+If you want to assign a property dynamically, you can do this:
 ```js
 const key = "user" 
-return data[key]
+data[key] = { name: "Boba Fett" } // data.user = { name: "Boba Fett" }
 ```
 
 However, you *can't* do this:
 ```js
 const key = "user.name"
-return data[key]
+data[key] = "Boba Fett"
 ```
 
-This tool allows access to deep properties from a single "property path" string.
+This tool allows assignation of deep properties using a single "property path" string.
 
 ## Installation
 
 ```js
-yarn add object-property-extractor
+yarn add object-property-assigner
 // OR
-npm install object-property-extractor
+npm install object-property-assigner
 ```
 
 ## Usage
 
-`extract( dataObject, propertyString, [fallback] )`
+`assign( dataObject, propertyString, newValue, { options } )`
+(See below for [`options` details](#options))
 
 ```js
-import extract from "object-property-extractor"
+import assign from "object-property-assigner"
 
 // Using the data object above
-extract(data, "user.name.first") // Jango
+assign(data, "user.name.first", "Boba") // data.user.name.first = "Boba"
 
-// With fallback when path not found
-extract(data, "user.age", "Unknown") // Unknown
-
-// Arrays can be accessed by index, as per normal indexing syntax
-extract(data, "user.children[1]") // Boba
+assign(data, "user.weapons[1].description", "Pew Pew") // data.user.weapons[1].description = "Pew Pew"
 ```
 
 ### Array handling
 
-In addition to accessing array by index (above), if an array consists of objects, then it's possible to exract a single property from *each* object in the returned array.
+In addition to accessing array by index (above), if an array consists of objects, then it's possible to assign a single property for *all* object in the array.
 
 For example:
 ```js
-extract(data, "user.weapons.name")
-// ["Blaster", "Seismic charge"]
+assign(data, "user.weapons.name", "Laser Gun")
+// sets *all* user.weapons.name to "Laser Gun"
 ```
 
-Note that this is essentially a shorthand for:  
-`extract(data, "user.weapons").map((weapon) => weapon.name)`
+### Options
 
-### Error handling
+The (optional) `options` object can contain any or all of the following parameters:
 
-If a requested property can't be accessed (e.g. incorrect path), the function will *throw* an error, unless a fallback is provided. So unless you are catching an handling these errors at a higher level, it is recommended to always provided a fallback (`null` is an acceptable fallback).
+- `remove` -- if `true`, the property will be *deleted* rather than assigned (in which case the `newValue` parameter is ignored)  
+  ```js
+  assign(data, "user.name.first", null, {remove:true}) // delete user.name.first
+  ```
+- `createNew` -- (default: `true`). If a property doesn't exist, it will be created, so set this to `false` if this behaviour is not desired  
+  ```js
+  assign(data, "user.kind", "Mandalorian", {createNew: true}) // data.user.kind = "Mandalorian"
+  ```  
+- `noError` -- (default: `false`). If a property doesn't exist *and* `createNew == false`, then an error will be thrown. If you'd rather it just silently ignored the missing property, then set this parameter to `true`. Note that this is only for errors due to invalid property strings -- other errors might still be thrown
 
 ## Testing
 
@@ -93,4 +95,4 @@ See `/test/test.ts` for the test cases.
 
 ## Bug report / Feature requests
 
-Please make an issue in the Github repo: https://github.com/CarlosNZ/object-property-extractor
+Please make an issue in the Github repo: https://github.com/CarlosNZ/object-property-assigner
