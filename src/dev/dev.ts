@@ -57,7 +57,13 @@ const arrData = [
 
 const smallerObj = { a: 1, two: { three: 3 } }
 
-const x = assign(testObj1, 'b.inner3.missing', 'Bob', { createNew: false })
+const testObj2: any = { ...testObj1 }
+delete testObj2.fun
+
+const x = assign(testObj2, 'b.two.inner', null, {
+  remove: true,
+})
 // console.log(JSON.stringify(arrData, null, 2))
 console.log(JSON.stringify(x, null, 2))
+// console.log(x)
 // console.log(arrData[2])

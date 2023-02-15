@@ -22,7 +22,8 @@ const assignProperty = (
         })
       } else {
         if (createNew) acc[part] = newValue
-        else return acc
+        if (remove) delete acc[part]
+        return acc
       }
 
       return
@@ -30,6 +31,7 @@ const assignProperty = (
 
     if (!(part in acc) || !isObject(acc[part])) {
       if (createNew) acc[part] = {}
+      // if (remove) delete acc[part]
       else return acc
     }
 
@@ -48,30 +50,6 @@ const splitPropertyString = (propertyPath: string) => {
     return !match ? part : [match[1], Number(match[2])].filter((val) => val !== '')
   })
   return arr.flat()
-}
-
-const setValueOrError = (
-  obj: Record<string, any>,
-  inputObj: InputObject,
-  part: string | number,
-  newValue: any,
-  fullPath: string,
-  remove: boolean,
-  createNew: boolean,
-  shouldThrow: boolean
-) => {
-  if (part in obj) {
-    if (remove) delete obj[part]
-    else obj[part] = newValue
-    return
-  }
-
-  if (createNew) {
-    obj[part] = newValue
-    return
-  }
-
-  if (shouldThrow) throwError(inputObj, fullPath, part)
 }
 
 const throwError = (obj: any, fullPath: string, part: string | number): void => {

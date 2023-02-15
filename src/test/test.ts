@@ -22,6 +22,9 @@ const testObj1 = {
   fun: (n: number) => n * 2,
 }
 
+const testObj2: any = { ...testObj1 }
+delete testObj2.fun
+
 const arrayObj = [
   1,
   2,
@@ -195,11 +198,25 @@ test('Create new property with missing early property', () => {
 })
 
 test('Create new property with missing early property with additional path parts', () => {
-  expect(
-    assign(cloneDeep(testObj1), 'x.one.two', 'This is deep', { createNew: true })
-  ).toStrictEqual({
+  expect(assign(cloneDeep(testObj1), 'x.one.two', 'This is deep')).toStrictEqual({
     ...testObj1,
     x: { one: { two: 'This is deep' } },
+  })
+})
+
+test('Create new property in array objects (one exists)', () => {
+  expect(assign(cloneDeep(testObj1), 'b.inner3.innerArray.five', 666)).toStrictEqual({
+    ...testObj1,
+    b: {
+      ...testObj1.b,
+      inner3: {
+        ...testObj1.b.inner3,
+        innerArray: [
+          { one: 1, two: 'two', three: true, four: null, five: 666 },
+          { one: 'one', two: 2, three: 3, four: { one: 1 }, five: 666 },
+        ],
+      },
+    },
   })
 })
 
@@ -227,6 +244,21 @@ test("Don't replace simple property with a deeper object", () => {
   expect(
     assign(cloneDeep(testObj1), 'a.one.two', 'This is deep', { createNew: false, noError: true })
   ).toStrictEqual(testObj1)
+})
+
+// Remove properties using "remove" parameter
+test('Remove early property', () => {
+  const t = { ...testObj2 }
+  delete t.a
+  expect(assign(cloneDeep(testObj2), 'a', null, { remove: true })).toStrictEqual(t)
+})
+
+test('Remove deeper property', () => {
+  const t = { ...testObj2 }
+  delete t.b.inner3.innerDeep2
+  expect(assign(cloneDeep(testObj2), 'b.inner3.innerDeep2', null, { remove: true })).toStrictEqual(
+    t
+  )
 })
 
 // // Empty property strings
