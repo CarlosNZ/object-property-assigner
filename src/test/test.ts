@@ -261,123 +261,25 @@ test('Remove deeper property', () => {
   )
 })
 
-// // Empty property strings
-// test('Empty property string', () => {
-//   expect(assign(testObj1, '')).toStrictEqual(testObj1)
-// })
+// Empty property strings
+test('Empty property string (does nothing)', () => {
+  expect(assign(cloneDeep(testObj1), '', 'ALT?')).toStrictEqual(testObj1)
+})
 
-// test('Empty property string after .', () => {
-//   expect(assign(testObj1, 'b.inner3.')).toStrictEqual(testObj1.b.inner3)
-// })
+test('Empty property string after .', () => {
+  expect(assign(cloneDeep(testObj1), 'b.inner3.', 'REPLACED')).toStrictEqual({
+    ...testObj1,
+    b: { ...testObj1.b, inner3: 'REPLACED' },
+  })
+})
 
-// // Run a function in an object
-// test('Access and run a function from an object', () => {
-//   expect((assign(testObj1, 'fun') as Function)(4)).toBe(8)
-// })
+// Functions
+test('Add a function', () => {
+  const obj = assign(cloneDeep(testObj1), 'b.newFun', (a: string) => a + 'output')
+  expect(obj.b.newFun('NEW ')).toBe('NEW output')
+})
 
-// // Property missing - shallow and deep, various
-// test('Missing property - top level', () => {
-//   expect(() => assign(testObj1, 'bee')).toThrow(
-//     /Unable to assign object property\nLooking for property: bee/gm
-//   )
-// })
-
-// test('Missing property - deeper', () => {
-//   expect(() => assign(testObj1, 'cee.jay')).toThrow(`Unable to assign object property
-// Looking for property: jay
-// In object: null`)
-// })
-
-// // Should probably have its own error
-// test('Array index out of bounds', () => {
-//   expect(() => assign(testObj1, 'ee[7]')).toThrow(
-//     /Unable to assign object property\nLooking for property: 7\nIn object: \[+/gm
-//   )
-// })
-
-// // TRY AND PASS A STRING INSTEAD OF ARRAY INDEX
-
-// test('Missing property - deep inside array', () => {
-//   expect(() => assign(testObj1, 'b.inner3.innerArray[1].nope')).toThrow(
-//     /Unable to assign object property\nLooking for property: nope\nIn object: {"one":"one"+/gm
-//   )
-// })
-
-// // Property missing with fallback, various
-// test('Missing property - top level, with fallback', () => {
-//   expect(assign(testObj1, 'baby', 'Fallback')).toBe('Fallback')
-// })
-
-// // Should probably have its own error
-// test('Array index out of bounds, with fallback', () => {
-//   expect(assign(testObj1, 'ee[9]', 666)).toBe(666)
-// })
-
-// test('Missing property - deep inside array, with fallback', () => {
-//   expect(assign(testObj1, 'b.inner3.innerArray[1].nope', false)).toBe(false)
-// })
-
-// // Missing property in only one object in an array of objects
-// test('Missing property on some objects in array', () => {
-//   expect(() => assign(testObj1, 'b.inner3.innerArray.five')).toThrow(
-//     /Unable to assign object property\nLooking for property: five\nIn object: {"one"/
-//   )
-// })
-
-// test('Missing property on some objects in array, with Fallback', () => {
-//   expect(assign(testObj1, 'b.inner3.innerArray.five', null)).toStrictEqual([true, null])
-// })
-
-// // Handle empty object
-// test('Empty input object, no fallback', () => {
-//   expect(() => assign({}, 'something.inside')).toThrow(
-//     /Unable to assign object property\nLooking for property: something\nIn object: {}/
-//   )
-// })
-
-// test('Empty input object, with fallback', () => {
-//   expect(assign({}, 'topLevel', 'alternative')).toBe('alternative')
-// })
-
-// // Handle undefined
-// test('Property has value of undefined, with fallback', () => {
-//   expect(assign(testObj1, 'ee[4]', 'Fallback')).toStrictEqual(undefined)
-// })
-
-// test('Property has value of undefined, no fallback', () => {
-//   expect(assign(testObj1, 'ee[4]')).toStrictEqual(undefined)
-// })
-
-// test('Fallback is undefined', () => {
-//   expect(() => assign(testObj1, 'cee.jay.smith', undefined)).toThrow(
-//     'Unable to assign object property\nLooking for property: jay\nIn object: null'
-//   )
-// })
-
-// // Handle null
-// test('Property has value of null', () => {
-//   expect(assign(testObj1, 'ee[5]', 'Fallback')).toBeNull()
-// })
-
-// // Misc
-// test('Property name is a number', () => {
-//   expect(assign(testObj1, 'dee.1', 'Fallback')).toBe(true)
-// })
-
-// test('Invalid input object', () => {
-//   expect(() => assign('A string', 'dee.1')).toThrow(
-//     'Unable to assign object property\nLooking for property: dee\nIn object: "A string"'
-//   )
-// })
-
-// test('Non-integer array index', () => {
-//   expect(() => assign(testObj1, 'b.inner3.innerDeep2[1.5]')).toThrow(
-//     /Unable to assign object property\nLooking for property: innerDeep2\[1\nIn object: {"innerDeep"/
-//   )
-// })
-
-// Make sure we have:
-//  - Delete
-//  - Immutable (Maybe)
-//  - Assign all properties of objects in array
-//  - Error
+test('Replace a function', () => {
+  const obj = assign(cloneDeep(testObj1), 'fun', (a: string) => a + 'output')
+  expect(obj.fun('NEW ')).toBe('NEW output')
+})

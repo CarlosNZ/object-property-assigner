@@ -8,6 +8,8 @@ const assignProperty = (
   newValue: any,
   { remove = false, createNew = true, noError = false }: Options = {}
 ): any => {
+  if (!isObject(inputObj)) throw new Error("Can't assign property -- invalid input object")
+
   const propertyPathArray = splitPropertyString(propertyPath as string).filter((e) => e !== '')
 
   propertyPathArray.reduce((acc: any, part, index) => {

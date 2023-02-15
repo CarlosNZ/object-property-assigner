@@ -60,9 +60,7 @@ const smallerObj = { a: 1, two: { three: 3 } }
 const testObj2: any = { ...testObj1 }
 delete testObj2.fun
 
-const x = assign(testObj2, 'b.two.inner', null, {
-  remove: true,
-})
+const x = assign('string', 'b.inner3.innerDeep2[6]', 'YES')
 // console.log(JSON.stringify(arrData, null, 2))
 console.log(JSON.stringify(x, null, 2))
 // console.log(x)
