@@ -48,7 +48,9 @@ const smallerObj = { a: 1, two: { three: 3 } }
 const testObj2: any = { ...testObj1 }
 delete testObj2.fun
 
-const x = assign(testObj1, 'a.one.two', 'This is deep')
+const smallObject = { a: 'three' }
+
+const x = assign(smallObject, 'a.one[2]', 'This is deep')
 // console.log(JSON.stringify(arrData, null, 2))
 console.log(JSON.stringify(x, null, 2))
 // console.log(x)

@@ -26,9 +26,6 @@ const assignProperty = <T>(
     const currentIsArray = isArray(current)
     const currentIsObject = isObject(current)
 
-    console.log('part', part)
-    console.log('current', current)
-
     if (index < propertyPathArray.length - 1) {
       if (currentIsArray && typeof part !== 'number') {
         maybeThrow(inputObj, stringifyPath(propertyPathArray), part, noError)
@@ -37,16 +34,13 @@ const assignProperty = <T>(
 
       if (!(currentIsObject || currentIsArray)) {
         if (createNew) {
-          ;(parent as any)[parentPart] = { [part]: {} }
-          parent = current as InputCollection
+          ;(parent as any)[parentPart] = {
+            [part]: typeof propertyPathArray[index + 1] === 'number' ? [] : {},
+          }
+          current = (parent as any)[parentPart][part]
+          parentPart = part
         } else maybeThrow(inputObj, stringifyPath(propertyPathArray), part, noError)
-      }
-
-      if (!(part in (current as InputCollection))) {
-        if (createNew) {
-          const newCollection = isArray(propertyPathArray[index + 1]) ? [] : {}
-          ;(current as InputObject)[part] = newCollection
-        } else maybeThrow(inputObj, stringifyPath(propertyPathArray), part, noError)
+        return
       }
 
       parent = current as InputCollection
@@ -56,6 +50,10 @@ const assignProperty = <T>(
     }
 
     // We've found the base of the path, now replace the data
+    // switch (true) {
+    //   case currentIsObject:
+    // }
+
     // OBJECTS
     if (currentIsObject) {
       current = current as InputObject
