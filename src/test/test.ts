@@ -73,7 +73,7 @@ test('Get inner object, deeper', () => {
   })
 })
 
-// // Get arrays, various depths
+// Get arrays, various depths
 test('Array at top level', () => {
   expect(assign(cloneDeep(testObj1), 'ee', ['new', 'array'])).toStrictEqual({
     ...testObj1,
@@ -254,7 +254,7 @@ test('Remove early property', () => {
 })
 
 test('Remove deeper property', () => {
-  const t = { ...testObj2 }
+  const t = cloneDeep(testObj2)
   delete t.b.inner3.innerDeep2
   expect(assign(cloneDeep(testObj2), 'b.inner3.innerDeep2', null, { remove: true })).toStrictEqual(
     t
@@ -262,7 +262,7 @@ test('Remove deeper property', () => {
 })
 
 test('Remove an array item by index', () => {
-  const t = { ...testObj2 }
+  const t = cloneDeep(testObj2)
   t.b.inner3.innerDeep2 = [1, 3]
   expect(
     assign(cloneDeep(testObj2), 'b.inner3.innerDeep2[1]', null, { remove: true })
@@ -276,7 +276,7 @@ test('Remove a top-level array item by index', () => {
 })
 
 test('Remove an array item when root object is an array', () => {
-  const t = { ...testObj2 }
+  const t = cloneDeep(testObj2)
   t.b.inner3.innerDeep2 = [1, 3]
   expect(
     assign(cloneDeep(testObj2), 'b.inner3.innerDeep2[1]', null, { remove: true })

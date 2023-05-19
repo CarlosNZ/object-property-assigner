@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash'
 import assign from '../assign'
 
 const testObj1 = {
@@ -50,8 +51,15 @@ delete testObj2.fun
 
 const smallObject = { a: 'three' }
 
-const x = assign(smallObject, 'a.one[2]', 'This is deep')
+const t = { ...testObj2 }
+// console.log(t)
+// delete t.b.inner3.innerDeep2
+// console.log(t)
+
+const x = assign(arrayObj, '[2].one.y', { more: 'yes' })
 // console.log(JSON.stringify(arrData, null, 2))
-console.log(JSON.stringify(x, null, 2))
-// console.log(x)
+// console.log(JSON.stringify(x, null, 2))
+// console.log(JSON.stringify(t, null, 2))
+console.log(x)
+// console.log(JSON.stringify(x, null, 2) === JSON.stringify(t, null, 2))
 // console.log(arrData[2])

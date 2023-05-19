@@ -15,8 +15,6 @@ const assignProperty = <T>(
     ? propertyPath
     : splitPropertyString(propertyPath as string).filter((e) => e !== '')
 
-  // console.log('propertyPathArray', propertyPathArray)
-
   let current: InputData = inputObj
   let parent: InputCollection = []
   let parentPart: string | number = ''
@@ -32,6 +30,7 @@ const assignProperty = <T>(
         return
       }
 
+      // If the new path part doesn't exist, create a new object for it
       if (!(currentIsObject || currentIsArray)) {
         if (createNew) {
           ;(parent as any)[parentPart] = {
@@ -50,45 +49,42 @@ const assignProperty = <T>(
     }
 
     // We've found the base of the path, now replace the data
-    // switch (true) {
-    //   case currentIsObject:
-    // }
-
-    // OBJECTS
-    if (currentIsObject) {
-      current = current as InputObject
-      if (part in current) {
-        if (remove) delete current[part]
-        else current[part] = newValue
+    switch (true) {
+      case currentIsObject: {
+        current = current as InputObject
+        if (part in current) {
+          if (remove) delete current[part]
+          else current[part] = newValue
+          return
+        }
+        if (createNew) current[part] = newValue
+        else maybeThrow(inputObj, stringifyPath(propertyPathArray), part, noError)
         return
       }
-      if (createNew) current[part] = newValue
-      else maybeThrow(inputObj, stringifyPath(propertyPathArray), part, noError)
-      return
-    }
+      case currentIsArray: {
+        if (typeof part !== 'number') {
+          maybeThrow(inputObj, stringifyPath(propertyPathArray), part, noError)
+          return
+        }
+        current = current as InputArray
+        if (part in current) {
+          if (remove) {
+            const currentArray: InputArray = (parent as any)[parentPart]
+            const newArray = [
+              ...currentArray.slice(0, part),
+              ...currentArray.slice((part as number) + 1),
+            ]
+            ;(parent as any)[parentPart] = newArray
+          } else current[part as number] = newValue // Update
+          return
+        }
 
-    // ARRAYS
-    if (typeof part !== 'number') {
-      maybeThrow(inputObj, stringifyPath(propertyPathArray), part, noError)
-      return
+        if (createNew) {
+          current.push(newValue)
+        } else maybeThrow(inputObj, stringifyPath(propertyPathArray), part, noError)
+        return
+      }
     }
-    current = current as InputArray
-    if (part in current) {
-      if (remove) {
-        const currentArray: InputArray = (parent as any)[parentPart]
-        const newArray = [
-          ...currentArray.slice(0, part),
-          ...currentArray.slice((part as number) + 1),
-        ]
-        ;(parent as any)[parentPart] = newArray
-      } else current[part as number] = newValue // Update
-      return
-    }
-
-    if (createNew) {
-      current.push(newValue)
-    } else maybeThrow(inputObj, stringifyPath(propertyPathArray), part, noError)
-    return
   })
 
   return inputObj
