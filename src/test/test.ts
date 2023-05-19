@@ -1,7 +1,7 @@
 import assign from '../assign'
 import { cloneDeep } from 'lodash'
 
-const testObj1 = {
+const testObj1: any = {
   a: 1,
   b: {
     inner: 'this',
@@ -261,6 +261,28 @@ test('Remove deeper property', () => {
   )
 })
 
+test('Remove an array item by index', () => {
+  const t = { ...testObj2 }
+  t.b.inner3.innerDeep2 = [1, 3]
+  expect(
+    assign(cloneDeep(testObj2), 'b.inner3.innerDeep2[1]', null, { remove: true })
+  ).toStrictEqual(t)
+})
+
+test('Remove a top-level array item by index', () => {
+  const t = { ...testObj2 }
+  t.ee = [1, 'two', { three: 4 }, false, undefined]
+  expect(assign(cloneDeep(testObj2), 'ee[5]', null, { remove: true })).toStrictEqual(t)
+})
+
+test('Remove an array item when root object is an array', () => {
+  const t = { ...testObj2 }
+  t.b.inner3.innerDeep2 = [1, 3]
+  expect(
+    assign(cloneDeep(testObj2), 'b.inner3.innerDeep2[1]', null, { remove: true })
+  ).toStrictEqual(t)
+})
+
 // Empty property strings
 test('Empty property string (does nothing)', () => {
   expect(assign(cloneDeep(testObj1), '', 'ALT?')).toStrictEqual(testObj1)
@@ -276,7 +298,7 @@ test('Empty property string after .', () => {
 // Functions
 test('Add a function', () => {
   const obj = assign(cloneDeep(testObj1), 'b.newFun', (a: string) => a + 'output')
-  expect(obj.b.newFun('NEW ')).toBe('NEW output')
+  expect(obj?.b?.newFun('NEW ')).toBe('NEW output')
 })
 
 test('Replace a function', () => {
