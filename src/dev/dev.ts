@@ -58,8 +58,8 @@ const t = { ...testObj2 }
 
 const x = assign(arrayObj, '[2].one.y', { more: 'yes' })
 // console.log(JSON.stringify(arrData, null, 2))
-// console.log(JSON.stringify(x, null, 2))
+console.log(JSON.stringify(x, null, 2))
 // console.log(JSON.stringify(t, null, 2))
-console.log(x)
+// console.log(x)
 // console.log(JSON.stringify(x, null, 2) === JSON.stringify(t, null, 2))
 // console.log(arrData[2])

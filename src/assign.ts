@@ -63,7 +63,8 @@ const assignProperty = <T>(
       }
       case currentIsArray: {
         if (typeof part !== 'number') {
-          maybeThrow(inputObj, stringifyPath(propertyPathArray), part, noError)
+          // Replace *each* item in array with the new property value
+          ;(current as InputArray).forEach((e) => assignProperty(e, part, newValue))
           return
         }
         current = current as InputArray
