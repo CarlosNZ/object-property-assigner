@@ -1,14 +1,15 @@
-export type BasicObject = {
-  [key: string]: BasicObject | unknown | (BasicObject | unknown)[]
-}
+export type InputObject = { [key: string]: InputData }
 
-export type BasicArray = (BasicObject | unknown)[]
+export type InputArray = InputData[]
 
-export type InputObject = BasicObject | BasicArray | unknown
+export type InputCollection = InputObject | InputArray
+
+type BasicType = string | number | boolean | undefined | null
+
+export type InputData = InputObject | InputArray | BasicType
 
 export interface Options {
   remove?: boolean
-  immutable?: boolean
   noError?: boolean
   createNew?: boolean
 }
