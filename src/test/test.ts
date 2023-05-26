@@ -283,6 +283,13 @@ test('Remove an array item when root object is an array', () => {
   ).toStrictEqual(t)
 })
 
+test('Remove top-level array item when root object is an array', () => {
+  const t = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  expect(assign(cloneDeep(t), '[1]', null, { remove: true })).toStrictEqual([
+    1, 3, 4, 5, 6, 7, 8, 9,
+  ])
+})
+
 // Empty property strings
 test('Empty property string (does nothing)', () => {
   expect(assign(cloneDeep(testObj1), '', 'ALT?')).toStrictEqual(testObj1)

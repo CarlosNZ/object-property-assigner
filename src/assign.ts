@@ -16,8 +16,9 @@ const assignProperty = <T>(
     : splitPropertyString(propertyPath as string).filter((e) => e !== '')
 
   let current: InputData = inputObj
-  let parent: InputCollection = []
+  let parent: InputCollection
   let parentPart: string | number = ''
+  let topLevelArrayDeletion = false
 
   // Drill down into object/array via the path sequence
   propertyPathArray.forEach((part, index) => {
@@ -70,12 +71,11 @@ const assignProperty = <T>(
         current = current as InputArray
         if (part in current) {
           if (remove) {
-            const currentArray: InputArray = (parent as any)[parentPart]
-            const newArray = [
-              ...currentArray.slice(0, part),
-              ...currentArray.slice((part as number) + 1),
-            ]
-            ;(parent as any)[parentPart] = newArray
+            if (parent) {
+              const currentArray: InputArray = (parent as any)[parentPart]
+              const newArray = sliceArray(currentArray, part)
+              ;(parent as any)[parentPart] = newArray
+            } else topLevelArrayDeletion = true
           } else current[part as number] = newValue // Update
           return
         }
@@ -88,7 +88,11 @@ const assignProperty = <T>(
     }
   })
 
-  return inputObj
+  if (!topLevelArrayDeletion) return inputObj
+
+  // Deleting from a root-level array must be handled as a special case.
+  const index = propertyPathArray[0] as number
+  return sliceArray(inputObj as InputArray, index) as any
 }
 
 // Splits a string representing a (nested) property/index on an Object or Array
@@ -123,5 +127,11 @@ const stringifyPath = (path: (string | number)[] | string | number): string => {
     else return str === '' ? part : `${str}.${part}`
   }, '')
 }
+
+// Returns a copy of an array with a specific index removed.
+const sliceArray = <T>(input: T[], index: number): T[] => [
+  ...input.slice(0, index),
+  ...input.slice(index + 1),
+]
 
 export default assignProperty

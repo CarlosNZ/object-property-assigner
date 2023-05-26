@@ -27,3 +27,4 @@ jspm_packages/
 
 .DS_Store
 scratch.js
+.vscode/settings.json
