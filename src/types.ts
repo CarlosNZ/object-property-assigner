@@ -10,9 +10,9 @@ export interface Options {
   createNew?: boolean
 }
 
-export type Path = string | number | (string | number)[]
+export type Path = (string | number)[]
 
-export interface FullOptions extends Options {
+export interface FullOptions extends Required<Options> {
   fullData: Input
   fullPath: string
 }
