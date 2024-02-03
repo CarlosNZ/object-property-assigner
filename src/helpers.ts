@@ -3,12 +3,22 @@ import { BasicType, InputObject, Value } from './types'
 // Splits a string representing a (nested) property/index on an Object or Array
 // into array of strings/indexes
 // e.g. "data.organisations.nodes[0]" => ["data","organisations", "nodes", 0]
-export const splitPropertyString = (propertyPath: string) => {
+export const splitPropertyString = (propertyPath: string | (string | number)[]) => {
+  if (Array.isArray(propertyPath)) return propertyPath
   const arr = propertyPath.split('.').map((part) => {
     const match = /(.*)\[(\d)\]$/.exec(part)
     return !match ? part : [match[1], Number(match[2])].filter((val) => val !== '')
   })
   return arr.flat()
+}
+
+export const stringifyPath = (path: (string | number)[] | string | number): string => {
+  if (typeof path === 'string') return path
+  if (typeof path === 'number') return String(path)
+  return path.reduce((str: string, part) => {
+    if (typeof part === 'number') return `${str}[${part}]`
+    else return str === '' ? part : `${str}.${part}`
+  }, '')
 }
 
 export const maybeThrow = (

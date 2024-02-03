@@ -5,13 +5,14 @@ import {
   maybeThrow,
   removeFromArray,
   splitPropertyString,
+  stringifyPath,
 } from './helpers'
-import { FullOptions, Input, InputArray, InputObject, Options, Path, Value } from './types'
+import { FullOptions, Input, InputArray, InputObject, Options, Path } from './types'
 
-const assign = (data: Input, propertyPath: string, newValue: any, options: Options = {}) => {
+const assign = (data: Input, propertyPath: string | Path, newValue: any, options: Options = {}) => {
   const { remove = false, createNew = true, noError = false } = options
   const fullData = data
-  const fullPath = propertyPath
+  const fullPath = stringifyPath(propertyPath)
   const fullOptions = { remove, createNew, noError, fullData, fullPath }
 
   const propertyPathArray = splitPropertyString(propertyPath).filter((e) => e !== '')
