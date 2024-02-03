@@ -1,137 +1,153 @@
-import { InputArray, InputCollection, InputData, InputObject, Options } from './types'
+import {
+  isArray,
+  isObject,
+  isPrimitive,
+  maybeThrow,
+  removeFromArray,
+  splitPropertyString,
+} from './helpers'
+import { FullOptions, Input, InputArray, InputObject, Options, Path, Value } from './types'
+
+const assign = (data: Input, propertyPath: string, newValue: any, options: Options = {}) => {
+  const { remove = false, createNew = true, noError = false } = options
+  const fullData = data
+  const fullPath = propertyPath
+  const fullOptions = { remove, createNew, noError, fullData, fullPath }
+
+  const propertyPathArray = splitPropertyString(propertyPath).filter((e) => e !== '')
+
+  if (isArray(data) && remove && propertyPathArray.length === 1) {
+    // Special case for removing an array index that is at the top level. We'd
+    // normally have to do this from the parent (see below), but that's not
+    // possible here.
+    return removeFromArray(data, propertyPathArray[0] as number)
+  }
+
+  assignProperty(data, propertyPathArray, newValue, fullOptions)
+  return data
+}
 
 // Assigns a specific property or index (e.g. application.name) inside a nested
-// Object
-const assignProperty = <T>(
-  inputObj: T,
-  propertyPath: string | number | (string | number)[],
+// Object -- modifies "data" in-place
+const assignProperty = (
+  data: Input,
+  propertyPathArray: Path,
   newValue: any,
-  { remove = false, createNew = true, noError = false }: Options = {}
-): T => {
-  if (!(isObject(inputObj) || isArray(inputObj)))
+  options: FullOptions
+) => {
+  const dataIsObject = isObject(data)
+  const dataIsArray = isArray(data)
+
+  // Do nothing for empty property string
+  if (propertyPathArray.length === 0) return
+
+  if (!(dataIsObject || dataIsArray))
     throw new Error("Can't assign property -- invalid input object")
 
-  const propertyPathArray = Array.isArray(propertyPath)
-    ? propertyPath
-    : splitPropertyString(propertyPath as string).filter((e) => e !== '')
+  const { createNew, remove, noError, fullData, fullPath } = options
 
-  let current: InputData = inputObj
-  let parent: InputCollection
-  let parentPart: string | number = ''
-  let topLevelArrayDeletion = false
+  const property = propertyPathArray[0]
 
-  // Drill down into object/array via the path sequence
-  propertyPathArray.forEach((part, index) => {
-    const currentIsArray = isArray(current)
-    const currentIsObject = isObject(current)
+  if (dataIsArray && typeof property === 'string') {
+    data.forEach((item) => assignProperty(item as Input, propertyPathArray, newValue, options))
+    return
+  }
 
-    if (index < propertyPathArray.length - 1) {
-      if (currentIsArray && typeof part !== 'number') {
-        maybeThrow(inputObj, stringifyPath(propertyPathArray), part, noError)
-        return
-      }
-
-      // If the new path part doesn't exist, create a new object for it
-      if (!(currentIsObject || currentIsArray)) {
-        if (createNew) {
-          ;(parent as any)[parentPart] = {
-            [part]: typeof propertyPathArray[index + 1] === 'number' ? [] : {},
-          }
-          current = (parent as any)[parentPart][part]
-          parentPart = part
-        } else maybeThrow(inputObj, stringifyPath(propertyPathArray), part, noError)
-        return
-      }
-
-      parent = current as InputCollection
-      parentPart = part
-      current = (current as InputObject)[part]
+  // BASE
+  if (propertyPathArray.length === 1) {
+    if (dataIsObject && typeof property === 'string') {
+      updateObject(data, property, newValue, options)
       return
     }
 
-    // We've found the base of the path, now replace the data
-    switch (true) {
-      case currentIsObject: {
-        current = current as InputObject
-        if (part in current) {
-          if (remove) delete current[part]
-          else current[part] = newValue
-          return
-        }
-        if (createNew) current[part] = newValue
-        else maybeThrow(inputObj, stringifyPath(propertyPathArray), part, noError)
-        return
-      }
-      case currentIsArray: {
-        if (typeof part !== 'number') {
-          // Replace *each* item in array with the new property value
-          ;(current as InputArray).forEach((e) => assignProperty(e, part, newValue))
-          return
-        }
-        current = current as InputArray
-        if (part in current) {
-          if (remove) {
-            if (parent) {
-              const currentArray: InputArray = (parent as any)[parentPart]
-              const newArray = sliceArray(currentArray, part)
-              ;(parent as any)[parentPart] = newArray
-            } else topLevelArrayDeletion = true
-          } else current[part as number] = newValue // Update
-          return
-        }
-
-        if (createNew) {
-          current.push(newValue)
-        } else maybeThrow(inputObj, stringifyPath(propertyPathArray), part, noError)
-        return
-      }
+    if (dataIsArray && typeof property === 'number') {
+      updateArray(data, property, newValue, options)
+      return
     }
-  })
 
-  if (!topLevelArrayDeletion) return inputObj
+    maybeThrow(fullData, fullPath, property, noError)
+    return
+  }
 
-  // Deleting from a root-level array must be handled as a special case.
-  const index = propertyPathArray[0] as number
-  return sliceArray(inputObj as InputArray, index) as any
+  // RECURSIVE
+
+  const dataObject = data as InputObject
+
+  if (remove && propertyPathArray.length === 2 && typeof propertyPathArray[1] === 'number') {
+    // This is for removing an indexed element from an array -- it must
+    // be done from the parent, as an array can't have an element removed
+    // in-place, so we need to return a shallow copy of the filtered array
+    const childArray = dataObject[property]
+    const childArrayIndex = propertyPathArray[1]
+    if (isArray(childArray)) dataObject[property] = removeFromArray(childArray, childArrayIndex)
+    else
+      maybeThrow(
+        fullData,
+        fullPath,
+        property,
+        noError,
+        `Trying to remove an indexed item from an object that is not an array`
+      )
+    return
+  }
+
+  const newPathArray = propertyPathArray.slice(1)
+
+  if (property in data) {
+    // This is for the case where the current property exists, but it's not an
+    // object, so subsequent path elements can't be added
+    if (isPrimitive(dataObject[property])) {
+      if (createNew) dataObject[property] = {}
+      else return
+    }
+
+    const newData = dataObject[property] as Input
+
+    assignProperty(newData, newPathArray, newValue, options)
+    return
+  }
+
+  if (dataIsObject && createNew) {
+    data[property] = {}
+    const newData = data[property] as Input
+    assignProperty(newData, newPathArray, newValue, options)
+    return
+  }
+
+  maybeThrow(fullData, fullPath, property, noError)
 }
 
-// Splits a string representing a (nested) property/index on an Object or Array
-// into array of strings/indexes
-// e.g. "data.organisations.nodes[0]" => ["data","organisations", "nodes", 0]
-const splitPropertyString = (propertyPath: string) => {
-  const arr = propertyPath.split('.').map((part) => {
-    const match = /(.*)\[(\d)\]$/.exec(part)
-    return !match ? part : [match[1], Number(match[2])].filter((val) => val !== '')
-  })
-  return arr.flat()
+// Actual mutations of the leaf nodes, which considers all options and cases
+const updateObject = (data: InputObject, property: string, newValue: any, options: FullOptions) => {
+  const { remove, createNew, noError, fullData, fullPath } = options
+
+  const exists = property in data
+
+  if (remove) {
+    if (exists) delete data[property]
+    else maybeThrow(fullData, fullPath, property, noError)
+    return
+  }
+
+  if (createNew || exists) {
+    data[property] = newValue
+    return
+  }
+
+  maybeThrow(fullData, fullPath, property, noError)
 }
 
-const maybeThrow = (obj: any, fullPath: string, part: string | number, noError: boolean): void => {
-  if (!noError)
-    throw new Error(
-      `Invalid property path: ${fullPath}\nCouldn't access "${part}" in ${JSON.stringify(obj)}`
-    )
-  return
+const updateArray = (data: InputArray, property: number, newValue: any, options: FullOptions) => {
+  const { noError, fullData, fullPath } = options
+
+  if (!(property in data)) {
+    maybeThrow(fullData, fullPath, property, noError)
+    return
+  }
+
+  // Array element deletion done in parent
+
+  data[property] = newValue
 }
 
-const isObject = (input: unknown): input is InputObject =>
-  typeof input === 'object' && input !== null && !Array.isArray(input)
-
-const isArray = (input: unknown): input is InputArray => Array.isArray(input)
-
-const stringifyPath = (path: (string | number)[] | string | number): string => {
-  if (typeof path === 'string') return path
-  if (typeof path === 'number') return String(path)
-  return path.reduce((str: string, part) => {
-    if (typeof part === 'number') return `${str}[${part}]`
-    else return str === '' ? part : `${str}.${part}`
-  }, '')
-}
-
-// Returns a copy of an array with a specific index removed.
-const sliceArray = <T>(input: T[], index: number): T[] => [
-  ...input.slice(0, index),
-  ...input.slice(index + 1),
-]
-
-export default assignProperty
+export default assign

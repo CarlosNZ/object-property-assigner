@@ -22,7 +22,7 @@ const testObj1: any = {
   fun: (n: number) => n * 2,
 }
 
-const testObj2: any = { ...testObj1 }
+const testObj2 = { ...testObj1 }
 delete testObj2.fun
 
 const arrayObj = [
@@ -35,6 +35,37 @@ const arrayObj = [
     ],
   },
 ]
+
+const arrayNestedEarly = {
+  list: [
+    { one: 1, value: { text: 'Number 1' }, three: [1, 2, 3] },
+    { one: 2, value: { text: 'Number 2' }, three: [4, 5, 6] },
+    { one: 3, value: { text: 'Number 3' }, three: [7, 8, 9] },
+  ],
+}
+
+const arrayDoubleNested = {
+  list: [
+    {
+      one: 1,
+      value: { text: 'Number 1' },
+      three: [
+        { name: 'Carl', height: 1.83 },
+        { name: 'Bodhi', height: 1.2 },
+        { name: 'ANM', height: 1.6 },
+      ],
+    },
+    {
+      one: 2,
+      value: { text: 'Number 2' },
+      three: [
+        { name: 'Tom', height: 1.61 },
+        { name: 'Jerry', height: 1.61 },
+      ],
+    },
+    { one: 3, value: { text: 'Number 3' }, three: [{ name: 'Hugo', height: 1.5 }] },
+  ],
+}
 
 // Base level properties
 test('Base props 1', () => {
@@ -142,6 +173,61 @@ test('Array at top level (object is array), with nested elements', () => {
       ],
     },
   ])
+})
+
+test('Target multiple array elements with array early in path', () => {
+  expect(assign(cloneDeep(arrayNestedEarly), 'list.one', 99)).toStrictEqual({
+    list: [
+      { one: 99, value: { text: 'Number 1' }, three: [1, 2, 3] },
+      { one: 99, value: { text: 'Number 2' }, three: [4, 5, 6] },
+      { one: 99, value: { text: 'Number 3' }, three: [7, 8, 9] },
+    ],
+  })
+})
+
+test('Target multiple array elements with array early in path, deeper', () => {
+  expect(assign(cloneDeep(arrayNestedEarly), 'list.value.text', 'NEW WORLD')).toStrictEqual({
+    list: [
+      { one: 1, value: { text: 'NEW WORLD' }, three: [1, 2, 3] },
+      { one: 2, value: { text: 'NEW WORLD' }, three: [4, 5, 6] },
+      { one: 3, value: { text: 'NEW WORLD' }, three: [7, 8, 9] },
+    ],
+  })
+})
+
+test('Target multiple array elements with array early in path, another array deeper', () => {
+  expect(assign(cloneDeep(arrayNestedEarly), 'list.three[1]', 99)).toStrictEqual({
+    list: [
+      { one: 1, value: { text: 'Number 1' }, three: [1, 99, 3] },
+      { one: 2, value: { text: 'Number 2' }, three: [4, 99, 6] },
+      { one: 3, value: { text: 'Number 3' }, three: [7, 99, 9] },
+    ],
+  })
+})
+
+test('Target multiple array elements with array early in path, another array deeper', () => {
+  expect(assign(cloneDeep(arrayDoubleNested), 'list.three.name', null)).toStrictEqual({
+    list: [
+      {
+        one: 1,
+        value: { text: 'Number 1' },
+        three: [
+          { name: null, height: 1.83 },
+          { name: null, height: 1.2 },
+          { name: null, height: 1.6 },
+        ],
+      },
+      {
+        one: 2,
+        value: { text: 'Number 2' },
+        three: [
+          { name: null, height: 1.61 },
+          { name: null, height: 1.61 },
+        ],
+      },
+      { one: 3, value: { text: 'Number 3' }, three: [{ name: null, height: 1.5 }] },
+    ],
+  })
 })
 
 test('Ignore irrelevant trailing characters in property string', () => {
@@ -305,10 +391,10 @@ test('Empty property string after .', () => {
 // Functions
 test('Add a function', () => {
   const obj = assign(cloneDeep(testObj1), 'b.newFun', (a: string) => a + 'output')
-  expect(obj?.b?.newFun('NEW ')).toBe('NEW output')
+  expect((obj as any)?.b?.newFun('NEW ')).toBe('NEW output')
 })
 
 test('Replace a function', () => {
   const obj = assign(cloneDeep(testObj1), 'fun', (a: string) => a + 'output')
-  expect(obj.fun('NEW ')).toBe('NEW output')
+  expect((obj as any).fun('NEW ')).toBe('NEW output')
 })
