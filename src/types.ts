@@ -1,15 +1,18 @@
-export type InputObject = { [key: string]: InputData }
-
-export type InputArray = InputData[]
-
-export type InputCollection = InputObject | InputArray
-
-type BasicType = string | number | boolean | undefined | null
-
-export type InputData = InputObject | InputArray | BasicType
+export type BasicType = string | number | boolean | undefined | null | Function
+export type Value = Input | BasicType
+export type InputObject = { [key: string]: Value }
+export type InputArray = Value[]
+export type Input = InputObject | InputArray
 
 export interface Options {
   remove?: boolean
   noError?: boolean
   createNew?: boolean
+}
+
+export type Path = string | number | (string | number)[]
+
+export interface FullOptions extends Options {
+  fullData: Input
+  fullPath: string
 }

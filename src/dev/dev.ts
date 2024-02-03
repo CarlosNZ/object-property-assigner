@@ -33,14 +33,39 @@ const arrayObj = [
 ]
 
 const data = {
-  user: {
-    name: { first: 'Jango', last: 'Fett' },
-    children: ['Boba', 'Clone 1', 'Clone 2'],
-    weapons: [
-      { name: 'Blaster', description: 'For shooting stuff' },
-      { name: 'Seismic charge', description: '...BWAAAAAANG' },
-    ],
-  },
+  list: [
+    {
+      sterility: {
+        value: {
+          text: 'Non-sterile',
+          selection: 'Non-sterile',
+          optionIndex: 1,
+        },
+        isValid: true,
+        stageNumber: 1,
+        evaluatedParameters: {
+          label: 'Sterility',
+          options: ['Sterile', 'Non-sterile'],
+        },
+      },
+    },
+    {
+      sterility: {
+        value: {
+          text: 'Another',
+          selection: 'Non-sterile',
+          optionIndex: 1,
+        },
+        isValid: true,
+        stageNumber: 1,
+        evaluatedParameters: {
+          label: 'Sterility',
+          options: ['Sterile', 'Non-sterile'],
+        },
+      },
+    },
+  ],
+  text: 'Sterility: Non-sterile, Dosage Form: Solid Unit Dosage Forms, \n',
 }
 
 // console.log(extract(data, 'user.children[0].'))
@@ -62,8 +87,8 @@ delete testObj2.fun
 
 const simpleArray = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-const x = assign(simpleArray, [9], null, { remove: true })
+assign(testObj1, 'a', 'ten', {})
 // console.log(JSON.stringify(arrData, null, 2))
-console.log(JSON.stringify(x, null, 2))
+console.log(JSON.stringify(testObj1, null, 2))
 // console.log(x)
 // console.log(arrData[2])
