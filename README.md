@@ -50,6 +50,8 @@ npm install object-property-assigner
 
 ## Usage
 
+*Note: function returns a shallow copy of the input, the original object is unmodified*
+
 `assign( dataObject, propertyString, newValue, { options } )`
 (See below for [`options` details](#options))
 
@@ -57,9 +59,9 @@ npm install object-property-assigner
 import assign from "object-property-assigner"
 
 // Using the data object above
-assign(data, "user.name.first", "Boba") // data.user.name.first = "Boba"
+data = assign(data, "user.name.first", "Boba") // data.user.name.first = "Boba"
 
-assign(data, "user.weapons[1].description", "Pew Pew") // data.user.weapons[1].description = "Pew Pew"
+data = assign(data, "user.weapons[1].description", "Pew Pew") // data.user.weapons[1].description = "Pew Pew"
 ```
 
 ### Array handling
@@ -68,9 +70,10 @@ In addition to accessing array by index (above), if an array consists of objects
 
 For example:
 ```js
-assign(data, "user.weapons.name", "Laser Gun")
+data = assign(data, "user.weapons.name", "Laser Gun")
 // sets *all* user.weapons.name to "Laser Gun"
 ```
+
 
 ### Options
 
@@ -84,7 +87,12 @@ The (optional) `options` object can contain any or all of the following paramete
   ```js
   assign(data, "user.kind", "Mandalorian", {createNew: true}) // data.user.kind = "Mandalorian"
   ```  
-- `noError` -- (default: `false`). If a property doesn't exist *and* `createNew == false`, then an error will be thrown. If you'd rather it just silently ignored the missing property, then set this parameter to `true`. Note that this is only for errors due to invalid property strings -- other errors might still be thrown
+  Note: for arrays, if an index is specified higher than the current array length, a new item will be created as the *next* array item, regardless of how much higher the index is. e.g.  
+  ```js
+  assign( {myArray: [1, 2, 3]}, "myArray[10]", "New Value")
+  // --> {myArray: [1, 2, 3, "New Value"]}
+  ```
+- `noError` -- (default: `false`). If a property doesn't exist *and* `createNew == false`, then an error will be thrown. If you'd rather it just silently ignored the missing property, then set this parameter to `true`. Note that this is only for errors due to invalid property strings -- other errors might still be thrown.
 
 ## Testing
 
