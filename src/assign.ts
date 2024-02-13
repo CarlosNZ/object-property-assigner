@@ -9,6 +9,7 @@ import {
 } from './helpers'
 import { FullOptions, Input, InputArray, InputObject, Options, Path } from './types'
 
+// Wrapper function
 const assign = (data: Input, propertyPath: string | Path, newValue: any, options: Options = {}) => {
   const { remove = false, createNew = true, noError = false } = options
   const fullData = data
@@ -18,18 +19,16 @@ const assign = (data: Input, propertyPath: string | Path, newValue: any, options
   const propertyPathArray = splitPropertyString(propertyPath).filter((e) => e !== '')
 
   if (isArray(data) && remove && propertyPathArray.length === 1) {
-    // Special case for removing an array index that is at the top level. We'd
+    // Special case for removing an array index that is at the root level. We'd
     // normally have to do this from the parent (see below), but that's not
     // possible here.
     return removeFromArray(data, propertyPathArray[0] as number)
   }
 
-  const newData = assignProperty(data, propertyPathArray, newValue, fullOptions)
-  return newData
+  return assignProperty(data, propertyPathArray, newValue, fullOptions)
 }
 
-// Assigns a specific property or index (e.g. application.name) inside a nested
-// Object
+// Recursive function called by wrapper
 const assignProperty = (
   data: Input,
   propertyPathArray: Path,
