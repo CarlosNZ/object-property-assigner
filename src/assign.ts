@@ -9,6 +9,7 @@ import {
 } from './helpers'
 import { FullOptions, Input, InputArray, InputObject, Options, Path } from './types'
 
+// Wrapper function
 const assign = (data: Input, propertyPath: string | Path, newValue: any, options: Options = {}) => {
   const { remove = false, createNew = true, noError = false } = options
   const fullData = data
@@ -18,69 +19,66 @@ const assign = (data: Input, propertyPath: string | Path, newValue: any, options
   const propertyPathArray = splitPropertyString(propertyPath).filter((e) => e !== '')
 
   if (isArray(data) && remove && propertyPathArray.length === 1) {
-    // Special case for removing an array index that is at the top level. We'd
+    // Special case for removing an array index that is at the root level. We'd
     // normally have to do this from the parent (see below), but that's not
     // possible here.
     return removeFromArray(data, propertyPathArray[0] as number)
   }
 
-  assignProperty(data, propertyPathArray, newValue, fullOptions)
-  return data
+  return assignProperty(data, propertyPathArray, newValue, fullOptions)
 }
 
-// Assigns a specific property or index (e.g. application.name) inside a nested
-// Object -- modifies "data" in-place
+// Recursive function called by wrapper
 const assignProperty = (
   data: Input,
   propertyPathArray: Path,
   newValue: any,
   options: FullOptions
-) => {
-  const dataIsObject = isObject(data)
-  const dataIsArray = isArray(data)
+): Input => {
+  const objectData = isObject(data) ? { ...data } : null
+  const arrayData = isArray(data) ? [...data] : null
 
   // Do nothing for empty property string
-  if (propertyPathArray.length === 0) return
+  if (propertyPathArray.length === 0) return data
 
-  if (!(dataIsObject || dataIsArray))
-    throw new Error("Can't assign property -- invalid input object")
+  if (!(objectData || arrayData)) throw new Error("Can't assign property -- invalid input object")
 
   const { createNew, remove, noError, fullData, fullPath } = options
 
   const property = propertyPathArray[0]
 
-  if (dataIsArray && typeof property === 'string') {
-    data.forEach((item) => assignProperty(item as Input, propertyPathArray, newValue, options))
-    return
+  if (arrayData && typeof property === 'string') {
+    return arrayData.map((item) =>
+      assignProperty(item as Input, propertyPathArray, newValue, options)
+    )
   }
 
   // BASE
   if (propertyPathArray.length === 1) {
-    if (dataIsObject && typeof property === 'string') {
-      updateObject(data, property, newValue, options)
-      return
+    if (objectData && typeof property === 'string') {
+      updateObject(objectData, property, newValue, options)
+      return objectData
     }
 
-    if (dataIsArray && typeof property === 'number') {
-      updateArray(data, property, newValue, options)
-      return
+    if (arrayData && typeof property === 'number') {
+      updateArray(arrayData, property, newValue, options)
+      return arrayData
     }
 
     maybeThrow(fullData, fullPath, property, noError)
-    return
+    return data
   }
 
   // RECURSIVE
-
-  const dataObject = data as InputObject
+  const newData = (objectData || arrayData || []) as InputObject
 
   if (remove && propertyPathArray.length === 2 && typeof propertyPathArray[1] === 'number') {
     // This is for removing an indexed element from an array -- it must
     // be done from the parent, as an array can't have an element removed
-    // in-place, so we need to return a shallow copy of the filtered array
-    const childArray = dataObject[property]
+    // in-place, so we need to return a copy of the filtered array
+    const childArray = newData[property]
     const childArrayIndex = propertyPathArray[1]
-    if (isArray(childArray)) dataObject[property] = removeFromArray(childArray, childArrayIndex)
+    if (isArray(childArray)) newData[property] = removeFromArray(childArray, childArrayIndex)
     else
       maybeThrow(
         fullData,
@@ -89,7 +87,7 @@ const assignProperty = (
         noError,
         `Trying to remove an indexed item from an object that is not an array`
       )
-    return
+    return newData
   }
 
   const newPathArray = propertyPathArray.slice(1)
@@ -97,25 +95,48 @@ const assignProperty = (
   if (property in data) {
     // This is for the case where the current property exists, but it's not an
     // object, so subsequent path elements can't be added
-    if (isPrimitive(dataObject[property])) {
-      if (createNew) dataObject[property] = {}
-      else return
+    if (isPrimitive(newData[property])) {
+      if (createNew) newData[property] = {}
+      else {
+        maybeThrow(fullData, fullPath, property, noError)
+        return newData
+      }
     }
+    newData[property] = assignProperty(newData[property] as Input, newPathArray, newValue, options)
 
-    const newData = dataObject[property] as Input
-
-    assignProperty(newData, newPathArray, newValue, options)
-    return
+    return newData
   }
 
-  if (dataIsObject && createNew) {
-    data[property] = {}
-    const newData = data[property] as Input
-    assignProperty(newData, newPathArray, newValue, options)
-    return
+  if (createNew) {
+    const nextPathElement = newPathArray[0]
+    const newElement = typeof nextPathElement === 'number' ? [] : {}
+
+    if (objectData) {
+      newData[property] = newElement
+      newData[property] = assignProperty(
+        newData[property] as Input,
+        newPathArray,
+        newValue,
+        options
+      )
+      return newData
+    }
+
+    if (arrayData && Array.isArray(newData)) {
+      newData.push(newElement)
+      const newIndex = newData.length - 1
+      newData[newIndex] = assignProperty(
+        newData[newIndex] as Input,
+        newPathArray,
+        newValue,
+        options
+      )
+      return newData
+    }
   }
 
   maybeThrow(fullData, fullPath, property, noError)
+  return newData
 }
 
 // Actual mutations of the leaf nodes, which considers all options and cases
@@ -139,10 +160,11 @@ const updateObject = (data: InputObject, property: string, newValue: any, option
 }
 
 const updateArray = (data: InputArray, property: number, newValue: any, options: FullOptions) => {
-  const { noError, fullData, fullPath } = options
+  const { noError, fullData, fullPath, createNew } = options
 
   if (!(property in data)) {
-    maybeThrow(fullData, fullPath, property, noError)
+    if (createNew) data.push(newValue)
+    else maybeThrow(fullData, fullPath, property, noError)
     return
   }
 

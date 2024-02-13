@@ -32,40 +32,12 @@ const arrayObj = [
   },
 ]
 
-const data = {
+const arrayNestedEarly = {
   list: [
-    {
-      sterility: {
-        value: {
-          text: 'Non-sterile',
-          selection: 'Non-sterile',
-          optionIndex: 1,
-        },
-        isValid: true,
-        stageNumber: 1,
-        evaluatedParameters: {
-          label: 'Sterility',
-          options: ['Sterile', 'Non-sterile'],
-        },
-      },
-    },
-    {
-      sterility: {
-        value: {
-          text: 'Another',
-          selection: 'Non-sterile',
-          optionIndex: 1,
-        },
-        isValid: true,
-        stageNumber: 1,
-        evaluatedParameters: {
-          label: 'Sterility',
-          options: ['Sterile', 'Non-sterile'],
-        },
-      },
-    },
+    { one: 1, value: { text: 'Number 1' }, three: [1, 2, 3] },
+    { one: 2, value: { text: 'Number 2' }, three: [4, 5, 6] },
+    { one: 3, value: { text: 'Number 3' }, three: [7, 8, 9] },
   ],
-  text: 'Sterility: Non-sterile, Dosage Form: Solid Unit Dosage Forms, \n',
 }
 
 const arrayDoubleNested = {
@@ -91,12 +63,10 @@ const arrayDoubleNested = {
   ],
 }
 
-const smallerObj = { a: 1, two: { three: 3 } }
-
-const testObj2: any = { ...testObj1 }
-delete testObj2.fun
+const smallerObj = { two: { three: 3 }, a: 1 }
 
 const simpleArray = [0, 1, 2, 3]
 
-const x = assign(simpleArray, '[1]', null, { remove: true })
+const x = assign(testObj1, 'b.inner3.innerArray[2][2]', 'ADD THIS')
+// console.log(JSON.stringify(testObj1, null, 2))
 console.log(JSON.stringify(x, null, 2))
