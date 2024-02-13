@@ -21,9 +21,12 @@ const testObj1: any = {
   ee: [1, 'two', { three: 4 }, false, undefined, null],
   fun: (n: number) => n * 2,
 }
+const testObj1_original = cloneDeep(testObj1)
 
 const testObj2 = { ...testObj1 }
 delete testObj2.fun
+
+const testObj2_original = cloneDeep(testObj2)
 
 const arrayObj = [
   1,
@@ -36,6 +39,8 @@ const arrayObj = [
   },
 ]
 
+const arrayObj_original = cloneDeep(arrayObj)
+
 const arrayNestedEarly = {
   list: [
     { one: 1, value: { text: 'Number 1' }, three: [1, 2, 3] },
@@ -43,6 +48,8 @@ const arrayNestedEarly = {
     { one: 3, value: { text: 'Number 3' }, three: [7, 8, 9] },
   ],
 }
+
+const arrayNestedEarly_original = cloneDeep(arrayNestedEarly)
 
 const arrayDoubleNested = {
   list: [
@@ -67,79 +74,112 @@ const arrayDoubleNested = {
   ],
 }
 
+const arrayDoubleNested_original = cloneDeep(arrayDoubleNested)
+
 // Base level properties
 test('Base props 1', () => {
-  expect(assign(cloneDeep(testObj1), 'a', 'ten')).toStrictEqual({
-    ...testObj1,
+  expect(assign(testObj1, 'a', 'ten')).toStrictEqual({
+    ...testObj1_original,
     a: 'ten',
   })
+  // Check stringified to ensure key order has been preserved
+  expect(assign(testObj1, 'a', 'ten')).toEqual({
+    ...testObj1_original,
+    a: 'ten',
+  })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 test('Base props 2', () => {
-  expect(assign(cloneDeep(testObj1), 'cee', 'something')).toStrictEqual({
-    ...testObj1,
+  expect(assign(testObj1, 'cee', 'something')).toStrictEqual({
+    ...testObj1_original,
     cee: 'something',
   })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 // Deep objects, various types
 test('Deep props 1', () => {
-  expect(assign(cloneDeep(testObj1), 'b.inner', 'that')).toStrictEqual({
-    ...testObj1,
-    b: { ...testObj1.b, inner: 'that' },
+  expect(assign(testObj1, 'b.inner', 'that')).toStrictEqual({
+    ...testObj1_original,
+    b: { ...testObj1_original.b, inner: 'that' },
   })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 test('Deep props 2', () => {
-  expect(assign(cloneDeep(testObj1), 'b.inner3.innerDeep', null)).toStrictEqual({
-    ...testObj1,
-    b: { ...testObj1.b, inner3: { ...testObj1.b.inner3, innerDeep: null } },
+  expect(assign(testObj1, 'b.inner3.innerDeep', null)).toStrictEqual({
+    ...testObj1_original,
+    b: { ...testObj1_original.b, inner3: { ...testObj1_original.b.inner3, innerDeep: null } },
   })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 test('Get inner object, deeper', () => {
-  expect(assign(cloneDeep(testObj1), 'b.inner3', { new: 'Hi', val: 'There' })).toStrictEqual({
-    ...testObj1,
-    b: { ...testObj1.b, inner3: { new: 'Hi', val: 'There' } },
+  expect(assign(testObj1, 'b.inner3', { new: 'Hi', val: 'There' })).toStrictEqual({
+    ...testObj1_original,
+    b: { ...testObj1_original.b, inner3: { new: 'Hi', val: 'There' } },
   })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 // Get arrays, various depths
 test('Array at top level', () => {
-  expect(assign(cloneDeep(testObj1), 'ee', ['new', 'array'])).toStrictEqual({
-    ...testObj1,
+  expect(assign(testObj1, 'ee', ['new', 'array'])).toStrictEqual({
+    ...testObj1_original,
     ee: ['new', 'array'],
   })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 test('Array inner', () => {
-  expect(assign(cloneDeep(testObj1), 'b.inner3.innerArray', 'plain string')).toStrictEqual({
-    ...testObj1,
-    b: { ...testObj1.b, inner3: { ...testObj1.b.inner3, innerArray: 'plain string' } },
-  })
+  expect(JSON.stringify(assign(testObj1, 'b.inner3.innerArray', 'plain string'))).toStrictEqual(
+    JSON.stringify({
+      ...testObj1_original,
+      b: {
+        ...testObj1_original.b,
+        inner3: { ...testObj1_original.b.inner3, innerArray: 'plain string' },
+      },
+    })
+  )
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 test('Assign array by index', () => {
-  expect(assign(cloneDeep(testObj1), 'ee[1]', 'No longer two')).toStrictEqual({
-    ...testObj1,
+  expect(assign(testObj1, 'ee[1]', 'No longer two')).toStrictEqual({
+    ...testObj1_original,
     ee: [1, 'No longer two', { three: 4 }, false, undefined, null],
   })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 test('Assign array by index - deeper', () => {
-  expect(assign(cloneDeep(testObj1), 'b.inner3.innerDeep2[2]', undefined)).toStrictEqual({
-    ...testObj1,
-    b: { ...testObj1.b, inner3: { ...testObj1.b.inner3, innerDeep2: [1, 2, undefined] } },
+  expect(assign(testObj1, 'b.inner3.innerDeep2[2]', undefined)).toStrictEqual({
+    ...testObj1_original,
+    b: {
+      ...testObj1_original.b,
+      inner3: { ...testObj1_original.b.inner3, innerDeep2: [1, 2, undefined] },
+    },
   })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 test('Assign property inside object in indexed array', () => {
-  expect(assign(cloneDeep(testObj1), 'b.inner3.innerArray[1].four', '{ one: 1 }')).toStrictEqual({
-    ...testObj1,
+  expect(assign(testObj1, 'b.inner3.innerArray[1].four', '{ one: 1 }')).toStrictEqual({
+    ...testObj1_original,
     b: {
-      ...testObj1.b,
+      ...testObj1_original.b,
       inner3: {
-        ...testObj1.b.inner3,
+        ...testObj1_original.b.inner3,
         innerArray: [
           { one: 1, two: 'two', three: true, four: null, five: true },
           { one: 'one', two: 2, three: 3, four: '{ one: 1 }' },
@@ -147,10 +187,12 @@ test('Assign property inside object in indexed array', () => {
       },
     },
   })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 test('Array at top level (object is array)', () => {
-  expect(assign(cloneDeep(arrayObj), '[0]', 99)).toStrictEqual([
+  expect(assign(arrayObj, '[0]', 99)).toStrictEqual([
     99,
     2,
     {
@@ -160,10 +202,12 @@ test('Array at top level (object is array)', () => {
       ],
     },
   ])
+  // Ensure original hasn't been modified
+  expect(arrayObj).toStrictEqual(arrayObj_original)
 })
 
 test('Array at top level (object is array), with nested elements', () => {
-  expect(assign(cloneDeep(arrayObj), '[2].one.y', { more: 'yes' })).toStrictEqual([
+  expect(assign(arrayObj, '[2].one.y', { more: 'yes' })).toStrictEqual([
     1,
     2,
     {
@@ -173,40 +217,48 @@ test('Array at top level (object is array), with nested elements', () => {
       ],
     },
   ])
+  // Ensure original hasn't been modified
+  expect(arrayObj).toStrictEqual(arrayObj_original)
 })
 
 test('Target multiple array elements with array early in path', () => {
-  expect(assign(cloneDeep(arrayNestedEarly), 'list.one', 99)).toStrictEqual({
+  expect(assign(arrayNestedEarly, 'list.one', 99)).toStrictEqual({
     list: [
       { one: 99, value: { text: 'Number 1' }, three: [1, 2, 3] },
       { one: 99, value: { text: 'Number 2' }, three: [4, 5, 6] },
       { one: 99, value: { text: 'Number 3' }, three: [7, 8, 9] },
     ],
   })
+  // Ensure original hasn't been modified
+  expect(arrayNestedEarly).toStrictEqual(arrayNestedEarly_original)
 })
 
 test('Target multiple array elements with array early in path, deeper', () => {
-  expect(assign(cloneDeep(arrayNestedEarly), 'list.value.text', 'NEW WORLD')).toStrictEqual({
+  expect(assign(arrayNestedEarly, 'list.value.text', 'NEW WORLD')).toStrictEqual({
     list: [
       { one: 1, value: { text: 'NEW WORLD' }, three: [1, 2, 3] },
       { one: 2, value: { text: 'NEW WORLD' }, three: [4, 5, 6] },
       { one: 3, value: { text: 'NEW WORLD' }, three: [7, 8, 9] },
     ],
   })
+  // Ensure original hasn't been modified
+  expect(arrayNestedEarly).toStrictEqual(arrayNestedEarly_original)
 })
 
 test('Target multiple array elements with array early in path, another array deeper', () => {
-  expect(assign(cloneDeep(arrayNestedEarly), 'list.three[1]', 99)).toStrictEqual({
+  expect(assign(arrayNestedEarly, 'list.three[1]', 99)).toStrictEqual({
     list: [
       { one: 1, value: { text: 'Number 1' }, three: [1, 99, 3] },
       { one: 2, value: { text: 'Number 2' }, three: [4, 99, 6] },
       { one: 3, value: { text: 'Number 3' }, three: [7, 99, 9] },
     ],
   })
+  // Ensure original hasn't been modified
+  expect(arrayNestedEarly).toStrictEqual(arrayNestedEarly_original)
 })
 
-test('Target multiple array elements with array early in path, another array deeper', () => {
-  expect(assign(cloneDeep(arrayDoubleNested), 'list.three.name', null)).toStrictEqual({
+test('Doubly nested array, without indexes (i.e. update every element in arrays', () => {
+  expect(assign(arrayDoubleNested, 'list.three.name', null)).toStrictEqual({
     list: [
       {
         one: 1,
@@ -228,17 +280,21 @@ test('Target multiple array elements with array early in path, another array dee
       { one: 3, value: { text: 'Number 3' }, three: [{ name: null, height: 1.5 }] },
     ],
   })
+  // Ensure original hasn't been modified
+  expect(arrayDoubleNested).toStrictEqual(arrayDoubleNested_original)
 })
 
 test('Ignore irrelevant trailing characters in property string', () => {
-  expect(assign(cloneDeep(testObj1), 'ee[0].', 'NEW')).toStrictEqual({
-    ...testObj1,
+  expect(assign(testObj1, 'ee[0].', 'NEW')).toStrictEqual({
+    ...testObj1_original,
     ee: ['NEW', 'two', { three: 4 }, false, undefined, null],
   })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 test('Ignore irrelevant trailing characters in property string, array top-level', () => {
-  expect(assign(cloneDeep(arrayObj), '[0].', 'Bob')).toStrictEqual([
+  expect(assign(arrayObj, '[0].', 'Bob')).toStrictEqual([
     'Bob',
     2,
     {
@@ -248,55 +304,63 @@ test('Ignore irrelevant trailing characters in property string, array top-level'
       ],
     },
   ])
+  // Ensure original hasn't been modified
+  expect(arrayObj).toStrictEqual(arrayObj_original)
 })
 
 test('Throw error with missing final property', () => {
-  expect(() =>
-    assign(cloneDeep(testObj1), 'b.inner3.missing', 'NEW', { createNew: false })
-  ).toThrow(
+  expect(() => assign(testObj1, 'b.inner3.missing', 'NEW', { createNew: false })).toThrow(
     `Invalid property path: b.inner3.missing\nCouldn't access "missing" in ${JSON.stringify(
-      testObj1
+      testObj1_original
     )}`
   )
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 test('Throw error with missing early property', () => {
-  expect(() => assign(cloneDeep(testObj1), 'b.nope', 'NEW', { createNew: false })).toThrow(
-    `Invalid property path: b.nope\nCouldn't access "nope" in ${JSON.stringify(testObj1)}`
+  expect(() => assign(testObj1, 'b.nope', 'NEW', { createNew: false })).toThrow(
+    `Invalid property path: b.nope\nCouldn't access "nope" in ${JSON.stringify(testObj1_original)}`
   )
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 test('Create new property with missing final property', () => {
-  expect(assign(cloneDeep(testObj1), 'b.inner3.missing', 'Bob', { createNew: true })).toStrictEqual(
-    {
-      ...testObj1,
-      b: { ...testObj1.b, inner3: { ...testObj1.b.inner3, missing: 'Bob' } },
-    }
-  )
+  expect(assign(testObj1, 'b.inner3.missing', 'Bob', { createNew: true })).toStrictEqual({
+    ...testObj1_original,
+    b: { ...testObj1_original.b, inner3: { ...testObj1_original.b.inner3, missing: 'Bob' } },
+  })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 // Create or replace properties
 test('Create new property with missing early property', () => {
-  expect(assign(cloneDeep(testObj1), 'x', 'More XXX', { createNew: true })).toStrictEqual({
-    ...testObj1,
+  expect(assign(testObj1, 'x', 'More XXX', { createNew: true })).toStrictEqual({
+    ...testObj1_original,
     x: 'More XXX',
   })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 test('Create new property with missing early property with additional path parts', () => {
-  expect(assign(cloneDeep(testObj1), 'x.one.two', 'This is deep')).toStrictEqual({
-    ...testObj1,
+  expect(assign(testObj1, 'x.one.two', 'This is deep')).toStrictEqual({
+    ...testObj1_original,
     x: { one: { two: 'This is deep' } },
   })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 test('Create new property in array objects (one exists)', () => {
-  expect(assign(cloneDeep(testObj1), 'b.inner3.innerArray.five', 666)).toStrictEqual({
-    ...testObj1,
+  expect(assign(testObj1, 'b.inner3.innerArray.five', 666)).toStrictEqual({
+    ...testObj1_original,
     b: {
-      ...testObj1.b,
+      ...testObj1_original.b,
       inner3: {
-        ...testObj1.b.inner3,
+        ...testObj1_original.b.inner3,
         innerArray: [
           { one: 1, two: 'two', three: true, four: null, five: 666 },
           { one: 'one', two: 2, three: 3, four: { one: 1 }, five: 666 },
@@ -304,61 +368,75 @@ test('Create new property in array objects (one exists)', () => {
       },
     },
   })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 test('Replace simple property with a deeper object', () => {
-  expect(assign(cloneDeep(testObj1), 'a.one.two', 'This is deep')).toStrictEqual({
-    ...testObj1,
+  expect(assign(testObj1, 'a.one.two', 'This is deep')).toStrictEqual({
+    ...testObj1_original,
     a: { one: { two: 'This is deep' } },
   })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 // DON'T create new properties (but don't throw error)
 test("Don't create new early property", () => {
-  expect(
-    assign(cloneDeep(testObj1), 'x', 'More XXX', { createNew: false, noError: true })
-  ).toStrictEqual(testObj1)
+  expect(assign(testObj1, 'x', 'More XXX', { createNew: false, noError: true })).toStrictEqual(
+    testObj1_original
+  )
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 test("Don't create new missing early property with additional path parts", () => {
   expect(
-    assign(cloneDeep(testObj1), 'x.one.two', 'This is deep', { createNew: false, noError: true })
-  ).toStrictEqual(testObj1)
+    assign(testObj1, 'x.one.two', 'This is deep', { createNew: false, noError: true })
+  ).toStrictEqual(testObj1_original)
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 test("Don't replace simple property with a deeper object", () => {
   expect(
-    assign(cloneDeep(testObj1), 'a.one.two', 'This is deep', { createNew: false, noError: true })
-  ).toStrictEqual(testObj1)
+    assign(testObj1, 'a.one.two', 'This is deep', { createNew: false, noError: true })
+  ).toStrictEqual(testObj1_original)
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 // Remove properties using "remove" parameter
 test('Remove early property', () => {
-  const t = { ...testObj2 }
+  const t = cloneDeep(testObj2)
   delete t.a
-  expect(assign(cloneDeep(testObj2), 'a', null, { remove: true })).toStrictEqual(t)
+  expect(assign(testObj2, 'a', null, { remove: true })).toStrictEqual(t)
+  // Ensure original hasn't been modified
+  expect(testObj2).toStrictEqual(testObj2_original)
 })
 
 test('Remove deeper property', () => {
   const t = cloneDeep(testObj2)
   delete t.b.inner3.innerDeep2
-  expect(assign(cloneDeep(testObj2), 'b.inner3.innerDeep2', null, { remove: true })).toStrictEqual(
-    t
-  )
+  expect(assign(testObj2, 'b.inner3.innerDeep2', null, { remove: true })).toStrictEqual(t)
+  // Ensure original hasn't been modified
+  expect(testObj2).toStrictEqual(testObj2_original)
 })
 
 test('Remove an array item by index', () => {
   const t = cloneDeep(testObj2)
   t.b.inner3.innerDeep2 = [1, 3]
-  expect(
-    assign(cloneDeep(testObj2), 'b.inner3.innerDeep2[1]', null, { remove: true })
-  ).toStrictEqual(t)
+  expect(assign(testObj2, 'b.inner3.innerDeep2[1]', null, { remove: true })).toStrictEqual(t)
+  // Ensure original hasn't been modified
+  expect(testObj2).toStrictEqual(testObj2_original)
 })
 
 test('Remove a top-level array item by index', () => {
-  const t = { ...testObj2 }
+  const t = cloneDeep(testObj2)
   t.ee = [1, 'two', { three: 4 }, false, undefined]
-  expect(assign(cloneDeep(testObj2), 'ee[5]', null, { remove: true })).toStrictEqual(t)
+  expect(assign(testObj2, 'ee[5]', null, { remove: true })).toStrictEqual(t)
+  // Ensure original hasn't been modified
+  expect(testObj2).toStrictEqual(testObj2_original)
 })
 
 test('Remove an array item when root object is an array', () => {
@@ -371,30 +449,147 @@ test('Remove an array item when root object is an array', () => {
 
 test('Remove top-level array item when root object is an array', () => {
   const t = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-  expect(assign(cloneDeep(t), '[1]', null, { remove: true })).toStrictEqual([
-    1, 3, 4, 5, 6, 7, 8, 9,
-  ])
+  const t_orig = cloneDeep(t)
+  expect(assign(t, '[1]', null, { remove: true })).toStrictEqual([1, 3, 4, 5, 6, 7, 8, 9])
+  // Ensure original hasn't been modified
+  expect(t).toStrictEqual(t_orig)
 })
 
 // Empty property strings
 test('Empty property string (does nothing)', () => {
-  expect(assign(cloneDeep(testObj1), '', 'ALT?')).toStrictEqual(testObj1)
+  expect(assign(testObj1, '', 'ALT?')).toStrictEqual(testObj1)
 })
 
 test('Empty property string after .', () => {
-  expect(assign(cloneDeep(testObj1), 'b.inner3.', 'REPLACED')).toStrictEqual({
-    ...testObj1,
-    b: { ...testObj1.b, inner3: 'REPLACED' },
+  expect(assign(testObj1, 'b.inner3.', 'REPLACED')).toStrictEqual({
+    ...testObj1_original,
+    b: { ...testObj1_original.b, inner3: 'REPLACED' },
   })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 // Functions
 test('Add a function', () => {
-  const obj = assign(cloneDeep(testObj1), 'b.newFun', (a: string) => a + 'output')
+  const obj = assign(testObj1, 'b.newFun', (a: string) => a + 'output')
   expect((obj as any)?.b?.newFun('NEW ')).toBe('NEW output')
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
 
 test('Replace a function', () => {
-  const obj = assign(cloneDeep(testObj1), 'fun', (a: string) => a + 'output')
+  const obj = assign(testObj1, 'fun', (a: string) => a + 'output')
   expect((obj as any).fun('NEW ')).toBe('NEW output')
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
+})
+
+// Add to arrays
+test('Add simple element to deep array', () => {
+  expect(assign(testObj1, 'b.inner3.innerArray[2]', 'ADD THIS', { createNew: true })).toStrictEqual(
+    {
+      ...testObj1_original,
+      b: {
+        ...testObj1_original.b,
+        inner3: {
+          ...testObj1_original.b.inner3,
+          innerArray: [
+            { one: 1, two: 'two', three: true, four: null, five: true },
+            { one: 'one', two: 2, three: 3, four: { one: 1 } },
+            'ADD THIS',
+          ],
+        },
+      },
+    }
+  )
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
+})
+
+test('Add simple element to deep array with excessively high index', () => {
+  expect(
+    assign(testObj1, 'b.inner3.innerArray[999]', 'ADD THIS', { createNew: true })
+  ).toStrictEqual({
+    ...testObj1_original,
+    b: {
+      ...testObj1_original.b,
+      inner3: {
+        ...testObj1_original.b.inner3,
+        innerArray: [
+          { one: 1, two: 'two', three: true, four: null, five: true },
+          { one: 'one', two: 2, three: 3, four: { one: 1 } },
+          'ADD THIS',
+        ],
+      },
+    },
+  })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
+})
+
+test('Add element to array with extra properties', () => {
+  expect(
+    JSON.stringify(
+      assign(testObj1, 'b.inner3.innerArray[2].newProperty', 'ADD THIS', { createNew: true })
+    )
+  ).toStrictEqual(
+    JSON.stringify({
+      ...testObj1_original,
+      b: {
+        ...testObj1_original.b,
+        inner3: {
+          ...testObj1_original.b.inner3,
+          innerArray: [
+            { one: 1, two: 'two', three: true, four: null, five: true },
+            { one: 'one', two: 2, three: 3, four: { one: 1 } },
+            { newProperty: 'ADD THIS' },
+          ],
+        },
+      },
+    })
+  )
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
+})
+
+test('Add element to array with extra array properties', () => {
+  expect(JSON.stringify(assign(testObj1, 'b.inner3.innerArray[2][2]', 'ADD THIS'))).toStrictEqual(
+    JSON.stringify({
+      ...testObj1_original,
+      b: {
+        ...testObj1_original.b,
+        inner3: {
+          ...testObj1_original.b.inner3,
+          innerArray: [
+            { one: 1, two: 'two', three: true, four: null, five: true },
+            { one: 'one', two: 2, three: 3, four: { one: 1 } },
+            ['ADD THIS'],
+          ],
+        },
+      },
+    })
+  )
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
+})
+
+test('Add array element to object with additional path', () => {
+  expect(assign(arrayObj, '[2].one[6].extra[2].inside', 'ADD THIS')).toStrictEqual([
+    1,
+    2,
+    {
+      one: [{ x: 'Ex', y: 'Why' }, { x: 'XXX', y: 'YYY' }, { extra: [{ inside: 'ADD THIS' }] }],
+    },
+  ])
+  // Ensure original hasn't been modified
+  expect(arrayObj).toStrictEqual(arrayObj_original)
+})
+
+test('Assign with path already split into array', () => {
+  expect(assign(testObj1, ['ee', 2, 'newProp'], 'NEW VALUE')).toStrictEqual({
+    ...testObj1_original,
+    ee: [1, 'two', { three: 4, newProp: 'NEW VALUE' }, false, undefined, null],
+  })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
 })
