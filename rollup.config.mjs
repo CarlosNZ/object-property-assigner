@@ -16,7 +16,7 @@ export default [
         format: 'esm',
       },
     ],
-    plugins: [typescript({ module: 'ESNext' }), sizes(), terser()],
+    plugins: [typescript({ module: 'ESNext', target: 'es6' }), sizes(), terser()],
   },
   {
     // path to your declaration files root
