@@ -1,10 +1,10 @@
 {
   "name": "object-property-assigner",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "A lightweight (no dependencies) tool to assign deeply nested properties in JS Objects (incl. Arrays)",
   "main": "build/index.cjs.js",
   "module": "build/index.esm.js",
-  "types": "build/index.d.js",
+  "types": "build/index.d.ts",
   "files": [
     "build/**/*"
   ],
