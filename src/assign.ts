@@ -16,7 +16,9 @@ const assign = (data: Input, propertyPath: string | Path, newValue: any, options
   const fullPath = stringifyPath(propertyPath)
   const fullOptions = { remove, createNew, noError, fullData, fullPath }
 
-  const propertyPathArray = splitPropertyString(propertyPath).filter((e) => e !== '')
+  const propertyPathArray = Array.isArray(propertyPath)
+    ? propertyPath
+    : splitPropertyString(propertyPath).filter((e) => e !== '')
 
   if (isArray(data) && remove && propertyPathArray.length === 1) {
     // Special case for removing an array index that is at the root level. We'd
