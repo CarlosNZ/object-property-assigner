@@ -14,7 +14,7 @@ const assign = (data: Input, propertyPath: string | Path, newValue: any, options
   const { remove = false, createNew = true, noError = false } = options
   const fullData = data
   const fullPath = stringifyPath(propertyPath)
-  const fullOptions = { remove, createNew, noError, fullData, fullPath }
+  const fullOptions = { ...options, remove, createNew, noError, fullData, fullPath }
 
   const propertyPathArray = Array.isArray(propertyPath)
     ? propertyPath
@@ -58,8 +58,8 @@ const assignProperty = (
   // BASE
   if (propertyPathArray.length === 1) {
     if (objectData && typeof property === 'string') {
-      updateObject(objectData, property, newValue, options)
-      return objectData
+      const newObj = updateObject(objectData, property, newValue, options)
+      return newObj ?? objectData
     }
 
     if (arrayData && typeof property === 'number') {
@@ -143,7 +143,16 @@ const assignProperty = (
 
 // Actual mutations of the leaf nodes, which considers all options and cases
 const updateObject = (data: InputObject, property: string, newValue: any, options: FullOptions) => {
-  const { remove, createNew, noError, fullData, fullPath } = options
+  const { remove, createNew, noError, insertAfter, insertBefore, fullData, fullPath } = options
+
+  if (insertBefore || insertAfter) {
+    const entries = Object.entries(data)
+    let index = entries.findIndex(([key, _]) => key === (insertBefore ?? insertAfter))
+    if (insertAfter) index++
+
+    entries.splice(index, 0, [property, newValue])
+    return Object.fromEntries(entries)
+  }
 
   const exists = property in data
 
@@ -162,7 +171,15 @@ const updateObject = (data: InputObject, property: string, newValue: any, option
 }
 
 const updateArray = (data: InputArray, property: number, newValue: any, options: FullOptions) => {
-  const { noError, fullData, fullPath, createNew } = options
+  const { noError, fullData, fullPath, createNew, insert } = options
+
+  if (insert) {
+    data.splice(property, 0, newValue)
+    // const before = data.slice(0, property)
+    // const after = data.slice(property)
+    // const newArray = [...before, newValue, ...after]
+    // return newArray
+  }
 
   if (!(property in data)) {
     if (createNew) data.push(newValue)

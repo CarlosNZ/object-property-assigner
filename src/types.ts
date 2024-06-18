@@ -8,11 +8,15 @@ export interface Options {
   remove?: boolean
   noError?: boolean
   createNew?: boolean
+  insert?: boolean
+  insertBefore?: string
+  insertAfter?: string
 }
 
 export type Path = (string | number)[]
 
-export interface FullOptions extends Required<Options> {
+export interface FullOptions extends Options {
+  noError: boolean
   fullData: Input
   fullPath: string
 }

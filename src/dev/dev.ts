@@ -67,6 +67,8 @@ const smallerObj = { two: { three: 3 }, a: 1 }
 
 const simpleArray = [0, 1, 2, 3]
 
-const x = assign(testObj1, 'b.inner3.innerArray[2][2]', 'ADD THIS')
-// console.log(JSON.stringify(testObj1, null, 2))
-console.log(JSON.stringify(x, null, 2))
+const x: any = assign(testObj1, 'b.inner3.innerArray[0].extra', 'WOW', {
+  insertBefore: 'two',
+})
+console.log(JSON.stringify(x.b.inner3.innerArray[0]))
+// console.log(x.b.inner3)

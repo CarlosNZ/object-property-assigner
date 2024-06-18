@@ -593,3 +593,94 @@ test('Assign with path already split into array', () => {
   // Ensure original hasn't been modified
   expect(testObj1).toStrictEqual(testObj1_original)
 })
+
+// Positional insertions
+test('Insert as middle position in array', () => {
+  expect(assign(testObj1, 'b.inner3.innerArray[1]', 'NEW VALUE', { insert: true })).toStrictEqual({
+    ...testObj1_original,
+    b: {
+      inner: 'this',
+      inner2: 45,
+      inner3: {
+        innerDeep: 2.4,
+        innerDeep2: [1, 2, 3],
+        innerBool: false,
+        innerArray: [
+          { one: 1, two: 'two', three: true, four: null, five: true },
+          'NEW VALUE',
+          { one: 'one', two: 2, three: 3, four: { one: 1 } },
+        ],
+      },
+    },
+  })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
+})
+
+test('Insert at start of array', () => {
+  expect(assign([1, 2, 3, 4, 5], '[0]', 'Jump the queue', { insert: true })).toStrictEqual([
+    'Jump the queue',
+    1,
+    2,
+    3,
+    4,
+    5,
+  ])
+  expect(assign([1, 2, 3, 4, 5], [0], 'Jump the queue', { insert: true })).toStrictEqual([
+    'Jump the queue',
+    1,
+    2,
+    3,
+    4,
+    5,
+  ])
+})
+
+test('Insert before key in object', () => {
+  const newObj: any = assign(testObj1, 'b.inner3.innerArray[0].extra', 'WOW', {
+    insertBefore: 'two',
+  })
+  expect(JSON.stringify(newObj.b.inner3.innerArray[0])).toEqual(
+    '{"one":1,"extra":"WOW","two":"two","three":true,"four":null,"five":true}'
+  )
+})
+
+test('Insert after key in object', () => {
+  const newObj: any = assign(testObj1, 'b.inner3.innerArray[0].extra', 'Hi there', {
+    insertAfter: 'four',
+  })
+  expect(JSON.stringify(newObj.b.inner3.innerArray[0])).toEqual(
+    '{"one":1,"two":"two","three":true,"four":null,"extra":"Hi there","five":true}'
+  )
+})
+
+// test('Insert at start key in object', () => {
+//   const newObj = assign(testObj1, 'b.inner3.innerArray[1].new', 'Hi there', {
+//     insertBefore: 'one',
+//   })
+//   expect(JSON.stringify((newObj as any).b.inner3.innerArray[1])).toEqual(
+//     '{"new":"Hi There","one":"one","two":2,"three":3,"four":{"one":1}}'
+//   )
+// })
+
+test("Insert after key that doesn't exist", () => {
+  expect(assign(testObj1, 'b.inner3.oneMore', 'YUP', { insertBefore: 'missing' })).toStrictEqual({
+    ...testObj1_original,
+    b: {
+      inner: 'this',
+      inner2: 45,
+      inner3: {
+        innerDeep: 2.4,
+        innerDeep2: [1, 2, 3],
+        innerBool: false,
+        innerArray: [
+          { one: 1, two: 'two', three: true, four: null, five: true },
+          { one: 'one', two: 2, three: 3, four: { one: 1 } },
+        ],
+        oneMore: 'YUP',
+      },
+    },
+  })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
+})
