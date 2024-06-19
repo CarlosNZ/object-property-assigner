@@ -654,14 +654,14 @@ test('Insert after key in object', () => {
   )
 })
 
-// test('Insert at start key in object', () => {
-//   const newObj = assign(testObj1, 'b.inner3.innerArray[1].new', 'Hi there', {
-//     insertBefore: 'one',
-//   })
-//   expect(JSON.stringify((newObj as any).b.inner3.innerArray[1])).toEqual(
-//     '{"new":"Hi There","one":"one","two":2,"three":3,"four":{"one":1}}'
-//   )
-// })
+test('Insert at start key in object', () => {
+  const newObj = assign(testObj1, 'b.inner3.innerArray[1].new', 'Hi there', {
+    insertBefore: 'one',
+  })
+  expect(JSON.stringify((newObj as any).b.inner3.innerArray[1])).toEqual(
+    '{"new":"Hi There","one":"one","two":2,"three":3,"four":{"one":1}}'
+  )
+})
 
 test("Insert after key that doesn't exist", () => {
   expect(assign(testObj1, 'b.inner3.oneMore', 'YUP', { insertBefore: 'missing' })).toStrictEqual({
