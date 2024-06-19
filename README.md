@@ -92,6 +92,18 @@ The (optional) `options` object can contain any or all of the following paramete
   assign( {myArray: [1, 2, 3]}, "myArray[10]", "New Value")
   // --> {myArray: [1, 2, 3, "New Value"]}
   ```
+- `insert` (`number`) -- (only for arrays). If this property is set, then the new value will be *inserted* into the array at this position and all other elements shuffled along. e.g.  
+  ```js
+  assign( {myArray: [1, 2, 3]}, "myArray[1]", "New Value")
+  // --> {myArray: [1, "New Value", 2, 3]}
+  ```
+- `insertBefore` (`string`) -- (only for objects). If this property is set, then the new value will be inserted *before* the key specified in `insertBefore`. e.g.  
+  ```js
+  assign( {one: 1, two: 2, three: 3}, "myNewValue", 69, {insertBefore: "three"} )
+  // --> {one: 1, two: 2, myNewValue: 69, three: 3}
+  ```
+  **Please note**: Javascript does *not* guarantee object property order, so this option may yield unpredictable results, especially if using non-standard object keys (e.g. numbers). See [here](https://dev.to/frehner/the-order-of-js-object-keys-458d) for an explanation of how key ordering is handled.
+- `insertAfter` (`string`) -- (only for objects). Same as `insertBefore`, but inserts *after* a particular object key. Same caveats apply.
 - `noError` -- (default: `false`). If a property doesn't exist *and* `createNew == false`, then an error will be thrown. If you'd rather it just silently ignored the missing property, then set this parameter to `true`. Note that this is only for errors due to invalid property strings -- other errors might still be thrown.
 
 ## Testing

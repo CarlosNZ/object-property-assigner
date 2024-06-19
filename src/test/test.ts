@@ -659,7 +659,7 @@ test('Insert at start key in object', () => {
     insertBefore: 'one',
   })
   expect(JSON.stringify((newObj as any).b.inner3.innerArray[1])).toEqual(
-    '{"new":"Hi There","one":"one","two":2,"three":3,"four":{"one":1}}'
+    '{"new":"Hi there","one":"one","two":2,"three":3,"four":{"one":1}}'
   )
 })
 
