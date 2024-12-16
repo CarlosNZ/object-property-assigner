@@ -684,3 +684,43 @@ test("Insert after key that doesn't exist", () => {
   // Ensure original hasn't been modified
   expect(testObj1).toStrictEqual(testObj1_original)
 })
+
+test('Insert by index in object', () => {
+  const newObj: any = assign(testObj1, 'b.inner3.innerArray[0].extra', 'Hi there', {
+    insertAfter: 3,
+  })
+  expect(JSON.stringify(newObj.b.inner3.innerArray[0])).toEqual(
+    '{"one":1,"two":"two","three":true,"four":null,"extra":"Hi there","five":true}'
+  )
+})
+
+test('Insert at start index in object', () => {
+  const newObj = assign(testObj1, 'b.inner3.innerArray[1].new', 'Hi there', {
+    insertBefore: 0,
+  })
+  expect(JSON.stringify((newObj as any).b.inner3.innerArray[1])).toEqual(
+    '{"new":"Hi there","one":"one","two":2,"three":3,"four":{"one":1}}'
+  )
+})
+
+test("Insert after object index that doesn't exist", () => {
+  expect(assign(testObj1, 'b.inner3.oneMore', 'YUP', { insertBefore: 999 })).toStrictEqual({
+    ...testObj1_original,
+    b: {
+      inner: 'this',
+      inner2: 45,
+      inner3: {
+        innerDeep: 2.4,
+        innerDeep2: [1, 2, 3],
+        innerBool: false,
+        innerArray: [
+          { one: 1, two: 'two', three: true, four: null, five: true },
+          { one: 'one', two: 2, three: 3, four: { one: 1 } },
+        ],
+        oneMore: 'YUP',
+      },
+    },
+  })
+  // Ensure original hasn't been modified
+  expect(testObj1).toStrictEqual(testObj1_original)
+})

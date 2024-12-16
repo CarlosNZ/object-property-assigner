@@ -9,8 +9,8 @@ export interface Options {
   noError?: boolean
   createNew?: boolean
   insert?: boolean
-  insertBefore?: string
-  insertAfter?: string
+  insertBefore?: string | number
+  insertAfter?: string | number
 }
 
 export type Path = (string | number)[]

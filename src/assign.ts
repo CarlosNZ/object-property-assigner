@@ -145,9 +145,13 @@ const assignProperty = (
 const updateObject = (data: InputObject, property: string, newValue: any, options: FullOptions) => {
   const { remove, createNew, noError, insertAfter, insertBefore, fullData, fullPath } = options
 
-  if (insertBefore || insertAfter) {
+  if (insertBefore !== undefined || insertAfter !== undefined) {
     const entries = Object.entries(data)
-    let index = entries.findIndex(([key, _]) => key === (insertBefore ?? insertAfter))
+    let index = Infinity
+    if (typeof insertBefore === 'number') index = insertBefore
+    else if (typeof insertAfter === 'number') index = insertAfter
+    else index = entries.findIndex(([key, _]) => key === (insertBefore ?? insertAfter))
+
     if (insertAfter) index++
 
     entries.splice(index, 0, [property, newValue])
@@ -173,13 +177,7 @@ const updateObject = (data: InputObject, property: string, newValue: any, option
 const updateArray = (data: InputArray, property: number, newValue: any, options: FullOptions) => {
   const { noError, fullData, fullPath, createNew, insert } = options
 
-  if (insert) {
-    data.splice(property, 0, newValue)
-    // const before = data.slice(0, property)
-    // const after = data.slice(property)
-    // const newArray = [...before, newValue, ...after]
-    // return newArray
-  }
+  if (insert) data.splice(property, 0, newValue)
 
   if (!(property in data)) {
     if (createNew) data.push(newValue)
